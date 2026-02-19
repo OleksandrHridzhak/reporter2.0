@@ -8,22 +8,9 @@ interface Props {
   onActivate: () => void;
 }
 
-const field = (label: string, value: string, key: keyof TitlePageData, onChange: (k: keyof TitlePageData, v: string) => void) => (
-  <div className="field-row" key={key}>
-    <label>{label}</label>
-    <input
-      type="text"
-      value={value}
-      onChange={e => onChange(key, e.target.value)}
-      placeholder={label}
-    />
-  </div>
-);
-
 export const TitlePageBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate }) => {
-  const handleChange = (key: keyof TitlePageData, value: string) => {
-    onChange({ ...data, [key]: value });
-  };
+  const set = (key: keyof TitlePageData) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    onChange({ ...data, [key]: e.target.value });
 
   return (
     <div className={`block ${isActive ? 'block--active' : ''}`} onClick={onActivate}>
@@ -31,18 +18,76 @@ export const TitlePageBlock: React.FC<Props> = ({ data, onChange, isActive, onAc
         <h2 className="block__title">📄 Титульна сторінка</h2>
       </div>
       <div className="block__body">
-        {field('Університет', data.university, 'university', handleChange)}
-        {field('Факультет', data.faculty, 'faculty', handleChange)}
-        {field('Кафедра', data.department, 'department', handleChange)}
-        {field('Тип роботи', data.workType, 'workType', handleChange)}
-        {field('Дисципліна', data.subject, 'subject', handleChange)}
-        {field('Номер лабораторної', data.labNumber, 'labNumber', handleChange)}
-        {field('Тема', data.topic, 'topic', handleChange)}
-        {field("Ім'я студента", data.studentName, 'studentName', handleChange)}
-        {field('Група', data.group, 'group', handleChange)}
-        {field('Викладач', data.teacherName, 'teacherName', handleChange)}
-        {field('Місто', data.city, 'city', handleChange)}
-        {field('Рік', data.year, 'year', handleChange)}
+
+        {/* Static info preview */}
+        <div className="title-preview">
+          <div className="title-preview__static">Міністерство освіти і науки України</div>
+          <div className="title-preview__static">Львівський національний університет імені Івана Франка</div>
+        </div>
+
+        <div className="field-row">
+          <label>Факультет</label>
+          <input type="text" value={data.faculty} onChange={set('faculty')}
+            placeholder="Факультет електроніки та комп'ютерних технологій" />
+        </div>
+
+        <div className="field-group">
+          <div className="field-row field-row--inline">
+            <label>ЛАБОРАТОРНА РОБОТА №</label>
+            <input type="text" value={data.labNumber} onChange={set('labNumber')}
+              placeholder="6" className="input--short" />
+          </div>
+        </div>
+
+        <div className="field-row">
+          <label>з курсу</label>
+          <input type="text" value={data.course} onChange={set('course')}
+            placeholder="Цифрова обробка інформації" />
+        </div>
+
+        <div className="field-row">
+          <label>Тема</label>
+          <input type="text" value={data.topic} onChange={set('topic')}
+            placeholder="Кількісна оцінка інформації" />
+        </div>
+
+        <div className="title-divider" />
+
+        <div className="title-preview__label">Виконав:</div>
+        <div className="field-row">
+          <label>Група</label>
+          <input type="text" value={data.studentGroup} onChange={set('studentGroup')}
+            placeholder="ФЕІ-33" />
+        </div>
+        <div className="field-row">
+          <label>Студент</label>
+          <input type="text" value={data.studentName} onChange={set('studentName')}
+            placeholder="Прізвище Ім'я" />
+        </div>
+
+        <div className="title-preview__label">Перевірив:</div>
+        <div className="field-group field-group--row">
+          <div className="field-row" style={{ flex: '0 0 110px' }}>
+            <label>Звання</label>
+            <input type="text" value={data.teacherTitle} onChange={set('teacherTitle')}
+              placeholder="Асист." />
+          </div>
+          <div className="field-row" style={{ flex: 1 }}>
+            <label>Викладач</label>
+            <input type="text" value={data.teacherName} onChange={set('teacherName')}
+              placeholder="Прізвище Ім'я" />
+          </div>
+        </div>
+
+        <div className="field-group field-group--row">
+          <div className="field-preview-static">Львів</div>
+          <div className="field-row" style={{ flex: '0 0 80px' }}>
+            <label>Рік</label>
+            <input type="text" value={data.year} onChange={set('year')}
+              placeholder="2025" />
+          </div>
+        </div>
+
       </div>
     </div>
   );

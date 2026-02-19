@@ -1,24 +1,20 @@
-export type BlockType = 'titlePage' | 'abstract' | 'workProgress' | 'conclusion' | 'references';
+export type OptionalBlockType = 'abstract' | 'workProgress' | 'conclusion' | 'appendix' | 'references';
+export type BlockType = 'titlePage' | OptionalBlockType;
 
 export interface TitlePageData {
-  university: string;
   faculty: string;
-  department: string;
-  workType: string;
-  subject: string;
   labNumber: string;
+  course: string;
   topic: string;
+  studentGroup: string;
   studentName: string;
-  group: string;
+  teacherTitle: string;
   teacherName: string;
-  city: string;
   year: string;
 }
 
 export interface AbstractData {
-  purpose: string;
-  tasks: string[];
-  tools: string;
+  content: string;
 }
 
 export interface WorkProgressStep {
@@ -35,15 +31,22 @@ export interface ConclusionData {
   content: string;
 }
 
+export interface AppendixData {
+  title: string;
+  code: string;
+}
+
 export interface ReferencesData {
   items: string[];
 }
 
 export interface ReportData {
   titlePage: TitlePageData;
+  enabledBlocks: OptionalBlockType[];
   abstract: AbstractData;
   workProgress: WorkProgressData;
   conclusion: ConclusionData;
+  appendix: AppendixData;
   references: ReferencesData;
 }
 

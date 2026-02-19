@@ -4,9 +4,10 @@ import { useGemini } from '../hooks/useGemini';
 
 const BLOCK_LABELS: Record<BlockType, string> = {
   titlePage: '📄 Титульна сторінка',
-  abstract: '📋 Анотація / Мета',
+  abstract: '📋 Мета роботи',
   workProgress: '🔧 Хід роботи',
   conclusion: '✅ Висновки',
+  appendix: '🗂️ Додаток',
   references: '📚 Список джерел',
 };
 
@@ -21,10 +22,11 @@ interface Props {
 function getBlockContext(block: BlockType | null, reportData: ReportData): string {
   if (!block) return '';
   switch (block) {
-    case 'titlePage': return `Тема: ${reportData.titlePage.topic}, Дисципліна: ${reportData.titlePage.subject}`;
-    case 'abstract': return `Мета: ${reportData.abstract.purpose}\nЗавдання: ${reportData.abstract.tasks.join(', ')}`;
+    case 'titlePage': return `Курс: ${reportData.titlePage.course}, Тема: ${reportData.titlePage.topic}`;
+    case 'abstract': return reportData.abstract.content;
     case 'workProgress': return reportData.workProgress.steps.map(s => `${s.title}: ${s.content}`).join('\n');
     case 'conclusion': return reportData.conclusion.content;
+    case 'appendix': return reportData.appendix.code;
     case 'references': return reportData.references.items.join('\n');
     default: return '';
   }
@@ -114,7 +116,7 @@ export const ChatPanel: React.FC<Props> = ({
             <ul>
               <li>«Напиши мету для лабораторної з ООП»</li>
               <li>«Допоможи написати висновки»</li>
-              <li>«Поясни хід виконання кроку 1»</li>
+              <li>«Напиши хід роботи для кроку 1»</li>
             </ul>
           </div>
         )}

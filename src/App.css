@@ -585,3 +585,130 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* =============================================
+   BLOCKS TOGGLE BAR
+   ============================================= */
+.blocks-toggle-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 24px;
+  background: var(--bg-white);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.blocks-toggle-bar__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 4px;
+}
+
+.block-toggle-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.block-toggle-btn--active {
+  background: rgba(26, 86, 219, 0.08);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.block-toggle-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* =============================================
+   TITLE PAGE STATIC ELEMENTS
+   ============================================= */
+.title-preview {
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 4px;
+}
+
+.title-preview__static {
+  font-size: 13px;
+  color: var(--text-light);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.title-preview__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 6px 0 4px;
+}
+
+.field-preview-static {
+  font-size: 13px;
+  color: var(--text-light);
+  padding: 8px 0;
+  align-self: flex-end;
+  padding-bottom: 10px;
+  min-width: 50px;
+}
+
+.title-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.field-group--row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.field-row--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.field-row--inline label {
+  white-space: nowrap;
+  margin-bottom: 0;
+  min-width: 180px;
+}
+
+.input--short {
+  width: 70px !important;
+  flex: none !important;
+}
+
+/* =============================================
+   CODE TEXTAREA (Appendix)
+   ============================================= */
+.code-textarea {
+  font-family: 'Courier New', 'Consolas', monospace !important;
+  font-size: 13px !important;
+  white-space: pre;
+  line-height: 1.4;
+  background: #1e1e1e !important;
+  color: #d4d4d4 !important;
+  border-color: #3c3c3c !important;
+  min-height: 200px;
+}
+
+.code-textarea:focus {
+  border-color: var(--accent) !important;
+}
