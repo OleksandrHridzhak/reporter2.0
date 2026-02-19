@@ -142,7 +142,7 @@ export async function exportToDocx(
     makeEmpty(),
         makeEmpty(),
     makeEmpty(),
-    makeCentered(`ЛАБОРАТОРНА РОБОТА № ${report.labNumber}`, true),
+    makeCentered(`ЛАБОРАТОРНА РОБОТА № ${report.labNumber}`, false),
     ...(space.courseName ? [makeCentered(`з курсу "${space.courseName}"`)] : []),
     ...(report.topic     ? [makeCentered(`"${report.topic}"`)]            : []),
     makeEmpty(),
@@ -152,10 +152,10 @@ export async function exportToDocx(
     makeEmpty(),
         makeEmpty(),
     makeEmpty(),
-    makeRight('Виконав:', true),
+    makeRight('Виконав:', false),
     makeRight(`Ст. ${global.studentGroup}`),
     makeRight(global.studentName),
-    makeRight('Перевірив:', true),
+    makeRight('Перевірив:', false),
     makeRight(`${space.teacherTitle} ${space.teacherName}`),
     makeEmpty(),
     makeEmpty(),
@@ -167,7 +167,15 @@ export async function exportToDocx(
   // ── Мета роботи ────────────────────────────────────────────────────────────
   if (enabledBlocks.includes('abstract') && abstract.content.trim()) {
     children.push(makeEmpty());
-    children.push(makeBody(`Мета роботи: ${abstract.content}`));
+    children.push(new Paragraph({
+      children: [
+        new TextRun({ text: 'Мета роботи: ', font: FONT, size: FONT_SIZE, bold: true }),
+        new TextRun({ text: abstract.content, font: FONT, size: FONT_SIZE })
+      ],
+      alignment: AlignmentType.BOTH,
+      spacing: { before: 0, after: 0, ...LINE_SPACING },
+      indent: { firstLine: INDENT },
+    }));
     children.push(makeEmpty());
   }
 
@@ -202,7 +210,15 @@ export async function exportToDocx(
   // Inline format like "Мета роботи:", not a standalone centered heading
   if (enabledBlocks.includes('conclusion') && conclusion.content.trim()) {
     children.push(makeEmpty());
-    children.push(makeBody(`Висновок: ${conclusion.content}`));
+    children.push(new Paragraph({
+      children: [
+        new TextRun({ text: 'Висновок: ', font: FONT, size: FONT_SIZE, bold: true }),
+        new TextRun({ text: conclusion.content, font: FONT, size: FONT_SIZE })
+      ],
+      alignment: AlignmentType.BOTH,
+      spacing: { before: 0, after: 0, ...LINE_SPACING },
+      indent: { firstLine: INDENT },
+    }));
     children.push(makeEmpty());
   }
 
