@@ -40,7 +40,7 @@ const HEADING_AFTER  = 120; // twips after heading paragraph
 // ─── Paragraph helpers ───────────────────────────────────────────────────────
 function makeHeading(text: string, level: 1 | 2 = 1): Paragraph {
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: FONT_SIZE, bold: true })],
+    children: [new TextRun({ text, font: FONT, size: FONT_SIZE, bold: true,color: '000000' })],
     heading: level === 1 ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
     alignment: level === 1 ? AlignmentType.CENTER : AlignmentType.LEFT,
     spacing: { before: HEADING_BEFORE, after: HEADING_AFTER, ...LINE_SPACING },
