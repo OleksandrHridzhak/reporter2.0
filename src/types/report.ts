@@ -50,7 +50,9 @@ export interface WorkProgressItem {
   id: string;
   text: string;
   itemCode?: string;       // optional code snippet under this step
+  codeCaption?: string;    // optional DSTU listing caption (e.g. "Лістинг 1 — ...")
   imageBase64?: string;    // optional image (base64 data URL) under this step
+  imageCaption?: string;   // optional DSTU figure caption  (e.g. "Рисунок 1 — ...")
 }
 
 export interface WorkProgressData {
