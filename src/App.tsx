@@ -116,7 +116,7 @@ function App() {
         r.workProgress = {
           items: lines.map((line, i) => ({
             id: (Date.now() + i).toString(),
-            text: line.replace(/^\d+\.\s*/, ''), // strip leading "1. " if present
+            text: line.replace(/^\d+\.\s*/, ''), // remove leading "1. " if present
           })),
         };
         break;
