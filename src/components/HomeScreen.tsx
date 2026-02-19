@@ -59,6 +59,15 @@ export const HomeScreen: React.FC<Props> = ({
     onSpacesChange(updated);
   };
 
+  const handleToggleReportDone = (spaceId: string, reportId: string) => {
+    const updated = spaces.map(s =>
+      s.id === spaceId
+        ? { ...s, reports: s.reports.map(r => r.id === reportId ? { ...r, isDone: !r.isDone } : r) }
+        : s
+    );
+    onSpacesChange(updated);
+  };
+
   return (
     <div className="home-screen">
       {/* Header */}
@@ -129,13 +138,18 @@ export const HomeScreen: React.FC<Props> = ({
                   {space.reports.map(report => (
                     <div
                       key={report.id}
-                      className="report-item"
+                      className={`report-item${report.isDone ? ' report-item--done' : ''}`}
                       onClick={() => onOpenReport(space.id, report.id)}
                     >
                       <span className="report-item__num">Лаб. #{report.labNumber}</span>
                       <span className="report-item__topic">
                         {report.topic || <em>без теми</em>}
                       </span>
+                      <button
+                        className={`btn-icon${report.isDone ? ' btn-icon--done' : ''}`}
+                        onClick={e => { e.stopPropagation(); handleToggleReportDone(space.id, report.id); }}
+                        title={report.isDone ? 'Позначити як невиконаний' : 'Позначити як виконаний'}
+                      >{report.isDone ? '✅' : '☐'}</button>
                       <button
                         className="btn-icon"
                         onClick={e => { e.stopPropagation(); handleDeleteReport(space.id, report.id); }}

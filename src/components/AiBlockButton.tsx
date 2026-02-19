@@ -1,37 +1,18 @@
 import React, { useState } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { OptionalBlockType, LabReport } from '../types/report';
-
-const BLOCK_DESCS: Record<OptionalBlockType, string> = {
-  abstract:     'мету роботи — короткий опис цілей лабораторної роботи (2–4 речення)',
-  workProgress: 'хід роботи — пронумерований список кроків виконання лабораторної роботи (5–8 пунктів)',
-  conclusion:   'висновок — підсумок результатів лабораторної роботи (2–4 речення)',
-  appendix:     'вміст додатку (код програми або інший матеріал)',
-};
-
-function buildPrompt(blockType: OptionalBlockType, report: LabReport): string {
-  const desc = BLOCK_DESCS[blockType];
-  const parts: string[] = [
-    `Ти асистент для написання академічних звітів. Стиль: офіційний, науковий, українська мова. Дотримуйся стандартів ДСТУ.`,
-    `Напиши ${desc} для лабораторної роботи №${report.labNumber}${report.topic ? ` на тему "${report.topic}"` : ''}.`,
-  ];
-  if (report.methodicalText?.trim()) {
-    parts.push(`\nМетодичні вказівки:\n${report.methodicalText.trim()}`);
-  }
-  parts.push(
-    `\nСтвори РІВНО 3 різних варіанти. Розділяй їх рядком "===VARIANT===". Пиши тільки текст розділу без зайвих пояснень та заголовків.`
-  );
-  return parts.join('\n');
-}
+import { buildPrompt } from '../utils/aiPrompts';
 
 interface Props {
   blockType: OptionalBlockType;
   report: LabReport;
   apiKey: string;
   onApply: (text: string) => void;
+  exampleReports?: LabReport[];
+  customPrompt?: string;
 }
 
-export const AiBlockButton: React.FC<Props> = ({ blockType, report, apiKey, onApply }) => {
+export const AiBlockButton: React.FC<Props> = ({ blockType, report, apiKey, onApply, exampleReports = [], customPrompt = '' }) => {
   const [variants, setVariants] = useState<string[]>([]);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
@@ -51,7 +32,7 @@ export const AiBlockButton: React.FC<Props> = ({ blockType, report, apiKey, onAp
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-      const result = await model.generateContent(buildPrompt(blockType, report));
+      const result = await model.generateContent(buildPrompt(blockType, report, exampleReports, customPrompt));
       const text   = result.response.text();
       const parts  = text.split(/===VARIANT===/).map(s => s.trim()).filter(Boolean);
       setVariants(parts.length >= 2 ? parts : [text.trim()]);

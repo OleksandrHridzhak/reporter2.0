@@ -9,11 +9,13 @@ interface Props {
   onActivate: () => void;
   apiKey: string;
   report: LabReport;
+  exampleReports?: LabReport[];
+  customPrompt?: string;
 }
 
 type AttachType = 'code' | 'image';
 
-export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate, apiKey, report }) => {
+export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate, apiKey, report, exampleReports, customPrompt }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingItemIdRef = useRef<string | null>(null);
 
@@ -33,11 +35,11 @@ export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, o
   const toggleAttach = (item: WorkProgressItem, type: AttachType) => {
     if (type === 'code') {
       // toggle code snippet: if present remove, if absent add empty
-      updateItem(item.id, { itemCode: item.itemCode !== undefined ? undefined : '' });
+      updateItem(item.id, { itemCode: item.itemCode !== undefined ? undefined : '', codeCaption: item.itemCode !== undefined ? undefined : '' });
     } else {
       // toggle image: if present remove, if absent open file picker
       if (item.imageBase64 !== undefined) {
-        updateItem(item.id, { imageBase64: undefined });
+        updateItem(item.id, { imageBase64: undefined, imageCaption: undefined });
       } else {
         pendingItemIdRef.current = item.id;
         fileInputRef.current?.click();
@@ -94,6 +96,8 @@ export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, o
               })),
             });
           }}
+          exampleReports={exampleReports}
+          customPrompt={customPrompt}
         />
       </div>
       <div className="block__body">
@@ -133,23 +137,57 @@ export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, o
 
               {/* Optional code */}
               {item.itemCode !== undefined && (
-                <textarea
-                  className="progress-code-input code-textarea"
-                  value={item.itemCode}
-                  rows={4}
-                  placeholder="// код..."
-                  onChange={e => updateItem(item.id, { itemCode: e.target.value })}
-                  onClick={e => e.stopPropagation()}
-                />
+                <div className="progress-attachment-wrap">
+                  <textarea
+                    className="progress-code-input code-textarea"
+                    value={item.itemCode}
+                    rows={4}
+                    placeholder="// код..."
+                    onChange={e => updateItem(item.id, { itemCode: e.target.value })}
+                    onClick={e => e.stopPropagation()}
+                    onKeyDown={e => {
+                      if (e.key === 'Tab') {
+                        e.preventDefault();
+                        const ta = e.currentTarget;
+                        const start = ta.selectionStart ?? 0;
+                        const end = ta.selectionEnd ?? 0;
+                        const newVal = (item.itemCode ?? '').substring(0, start) + '  ' + (item.itemCode ?? '').substring(end);
+                        updateItem(item.id, { itemCode: newVal });
+                        requestAnimationFrame(() => {
+                          ta.selectionStart = start + 2;
+                          ta.selectionEnd = start + 2;
+                        });
+                      }
+                    }}
+                  />
+                  <input
+                    type="text"
+                    className="progress-caption-input"
+                    value={item.codeCaption ?? ''}
+                    onChange={e => updateItem(item.id, { codeCaption: e.target.value })}
+                    placeholder="Підпис лістингу (ДСТУ), напр.: Реалізація алгоритму Хафмана"
+                    onClick={e => e.stopPropagation()}
+                  />
+                </div>
               )}
 
               {/* Optional image */}
               {item.imageBase64 !== undefined && (
-                <div className="progress-image-wrap">
-                  <img
-                    src={item.imageBase64}
-                    alt={`Рис. до пункту ${i + 1}`}
-                    className="progress-image"
+                <div className="progress-attachment-wrap">
+                  <div className="progress-image-wrap">
+                    <img
+                      src={item.imageBase64}
+                      alt={`Рис. до пункту ${i + 1}`}
+                      className="progress-image"
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    className="progress-caption-input"
+                    value={item.imageCaption ?? ''}
+                    onChange={e => updateItem(item.id, { imageCaption: e.target.value })}
+                    placeholder="Підпис рисунку (ДСТУ), напр.: Графік залежності ентропії"
+                    onClick={e => e.stopPropagation()}
                   />
                 </div>
               )}

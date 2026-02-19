@@ -120,7 +120,15 @@ function makeImageParagraph(dataUrl: string): Paragraph | null {
   }
 }
 
-// ─── Helper to create abbreviation from course name (first letters) ──────────
+function makeCaption(text: string): Paragraph {
+  return new Paragraph({
+    children: [new TextRun({ text, font: FONT, size: FONT_SIZE, italics: true })],
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 60, after: 60, ...LINE_SPACING },
+  });
+}
+
+
 function makeAbbreviation(text: string): string {
   if (!text || !text.trim()) return '';
   return text
@@ -205,6 +213,8 @@ export async function exportToDocx(
   // Format: "1. text" — one paragraph per item, no empty lines between items
   if (enabledBlocks.includes('workProgress') && workProgress.items.length > 0) {
     children.push(makeHeading('Хід роботи'));
+    let listingCount = 0;
+    let figureCount  = 0;
     for (const [i, item] of workProgress.items.entries()) {
       if (item.text.trim()) {
         children.push(makeBody(`${i + 1}. ${item.text}`, false));
@@ -214,6 +224,10 @@ export async function exportToDocx(
         item.itemCode.split('\n').forEach(line => {
           children.push(makeMonospace(line));
         });
+        if (item.codeCaption?.trim()) {
+          listingCount++;
+          children.push(makeCaption(`Лістинг ${listingCount} — ${item.codeCaption.trim()}`));
+        }
       }
       // Optional image under the item
       if (item.imageBase64) {
@@ -222,6 +236,10 @@ export async function exportToDocx(
           if (imgPara) children.push(imgPara);
         } catch {
           // skip if image cannot be embedded
+        }
+        if (item.imageCaption?.trim()) {
+          figureCount++;
+          children.push(makeCaption(`Рисунок ${figureCount} — ${item.imageCaption.trim()}`));
         }
       }
     }

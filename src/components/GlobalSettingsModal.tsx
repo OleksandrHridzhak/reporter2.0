@@ -13,9 +13,11 @@ export const GlobalSettingsModal: React.FC<Props> = ({ settings, apiKey, onSave,
   const [studentName, setStudentName] = useState(settings.studentName);
   const [studentGroup, setStudentGroup] = useState(settings.studentGroup);
   const [key, setKey] = useState(apiKey);
+  const [useOldReportsAsExamples, setUseOldReportsAsExamples] = useState(settings.useOldReportsAsExamples ?? false);
+  const [customPrompt, setCustomPrompt] = useState(settings.customPrompt ?? '');
 
   const handleSave = () => {
-    onSave({ faculty, studentName, studentGroup }, key);
+    onSave({ faculty, studentName, studentGroup, useOldReportsAsExamples, customPrompt }, key);
     onClose();
   };
 
@@ -75,6 +77,40 @@ export const GlobalSettingsModal: React.FC<Props> = ({ settings, apiKey, onSave,
             >
               Отримати безкоштовний API ключ →
             </a>
+          </div>
+
+          <div className="settings-divider" />
+
+          <div className="field-row field-row--checkbox">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={useOldReportsAsExamples}
+                onChange={e => setUseOldReportsAsExamples(e.target.checked)}
+              />
+              <span>Використовувати виконані звіти як приклад для AI</span>
+            </label>
+            <p className="field-hint">
+              Якщо увімкнено, AI отримує виконані звіти цього предмету як зразок стилю та структури.
+            </p>
+          </div>
+
+          <div className="field-row">
+            <label htmlFor="settings-custom-prompt">
+              Додаткові правила для AI{' '}
+              <span className="field-label-optional" aria-label="необов'язкове поле">(необов'язково)</span>
+            </label>
+            <textarea
+              id="settings-custom-prompt"
+              value={customPrompt}
+              onChange={e => setCustomPrompt(e.target.value)}
+              rows={3}
+              aria-describedby="settings-custom-prompt-hint"
+              placeholder="Наприклад: завжди використовуй пасивний стан, уникай слова 'даний', пиши висновки від першої особи множини..."
+            />
+            <p id="settings-custom-prompt-hint" className="field-hint">
+              Ці правила будуть додані до кожного AI-запиту під час генерації тексту.
+            </p>
           </div>
         </div>
 

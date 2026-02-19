@@ -1346,3 +1346,127 @@ body {
   max-height: 400px;
   object-fit: contain;
 }
+
+/* =============================================
+   SETTINGS: CHECKBOX & HINTS
+   ============================================= */
+.field-row--checkbox {
+  gap: 4px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: var(--text-muted, #888);
+  margin: 0;
+}
+
+.field-label-optional {
+  font-size: 11px;
+  color: var(--text-muted, #888);
+  font-weight: 400;
+}
+
+/* =============================================
+   HOME: REPORT ITEM DONE STATE
+   ============================================= */
+.report-item--done {
+  opacity: 0.75;
+}
+
+.report-item--done .report-item__num {
+  text-decoration: line-through;
+  color: var(--text-muted, #888);
+}
+
+.btn-icon--done {
+  color: var(--success, #22c55e);
+}
+
+/* =============================================
+   WORK PROGRESS – attachment wrapper (code + image)
+   ============================================= */
+.progress-attachment-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 32px;
+  width: calc(100% - 32px);
+}
+
+.progress-attachment-wrap .progress-code-input {
+  margin-left: 0;
+  width: 100%;
+}
+
+.progress-attachment-wrap .progress-image-wrap {
+  margin-left: 0;
+  max-width: 100%;
+}
+
+.progress-caption-input {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text-light);
+  background: var(--bg);
+  transition: border-color 0.15s;
+  font-style: italic;
+}
+
+.progress-caption-input:focus {
+  outline: none;
+  border-color: var(--border-active);
+  background: var(--bg-white);
+  color: var(--text);
+  font-style: normal;
+}
+
+.progress-caption-input::placeholder {
+  color: #94a3b8;
+}
+
+/* =============================================
+   FILL ALL AI BUTTON
+   ============================================= */
+.btn--ai-fill {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.btn--ai-fill:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn--ai-fill:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}

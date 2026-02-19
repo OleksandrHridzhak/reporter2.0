@@ -4,6 +4,8 @@ export const defaultGlobalSettings: GlobalSettings = {
   faculty: 'Факультет електроніки та комп\'ютерних технологій',
   studentName: '',
   studentGroup: '',
+  useOldReportsAsExamples: false,
+  customPrompt: '',
 };
 
 export const defaultAbstract: AbstractData = { content: '' };
