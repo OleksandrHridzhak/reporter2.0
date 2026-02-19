@@ -1,16 +1,19 @@
 import React, { useRef } from 'react';
-import type { WorkProgressData, WorkProgressItem } from '../../types/report';
+import type { WorkProgressData, WorkProgressItem, LabReport } from '../../types/report';
+import { AiBlockButton } from '../AiBlockButton';
 
 interface Props {
   data: WorkProgressData;
   onChange: (data: WorkProgressData) => void;
   isActive: boolean;
   onActivate: () => void;
+  apiKey: string;
+  report: LabReport;
 }
 
 type AttachType = 'code' | 'image';
 
-export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate }) => {
+export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate, apiKey, report }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingItemIdRef = useRef<string | null>(null);
 
@@ -78,6 +81,20 @@ export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, o
     <div className={`block ${isActive ? 'block--active' : ''}`} onClick={onActivate}>
       <div className="block__header">
         <h2 className="block__title">🔧 Хід роботи</h2>
+        <AiBlockButton
+          blockType="workProgress"
+          report={report}
+          apiKey={apiKey}
+          onApply={text => {
+            const lines = text.split('\n').filter(Boolean);
+            onChange({
+              items: lines.map((line, i) => ({
+                id: (Date.now() + i).toString(),
+                text: line.replace(/^\d+\.\s*/, ''),
+              })),
+            });
+          }}
+        />
       </div>
       <div className="block__body">
         <div className="progress-list">

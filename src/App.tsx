@@ -4,7 +4,6 @@ import { defaultGlobalSettings, createDemoSpace } from './utils/defaults';
 import { exportToDocx } from './utils/docxExport';
 import { HomeScreen } from './components/HomeScreen';
 import { GlobalSettingsModal } from './components/GlobalSettingsModal';
-import { ChatPanel } from './components/ChatPanel';
 import { ReportEditor } from './components/ReportEditor';
 import './App.css';
 
@@ -53,7 +52,6 @@ function App() {
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [activeBlock, setActiveBlock]           = useState<BlockType | null>(null);
   const [showSettings, setShowSettings]     = useState(false);
-  const [chatCollapsed, setChatCollapsed]   = useState(false);
 
   // ── Derived current space/report ──────────────────────────────────────────
   const currentSpace  = spaces.find(s => s.id === selectedSpaceId) ?? null;
@@ -112,50 +110,10 @@ function App() {
     URL.revokeObjectURL(url);
   }, [currentReport]);
 
-  // ── Apply AI text to a block ──────────────────────────────────────────────
-  const handleApplyToBlock = useCallback((block: BlockType, text: string) => {
-    if (!currentReport) return;
-    const r = { ...currentReport };
-    switch (block) {
-      case 'abstract':
-        r.abstract = { content: text };
-        break;
-      case 'workProgress': {
-        const lines = text.split('\n').filter(Boolean);
-        r.workProgress = {
-          items: lines.map((line, i) => ({
-            id: (Date.now() + i).toString(),
-            text: line.replace(/^\d+\.\s*/, ''), // remove leading "1. " if present
-          })),
-        };
-        break;
-      }
-      case 'conclusion':
-        r.conclusion = { content: text };
-        break;
-      case 'appendix':
-        r.appendix = { ...r.appendix, code: text };
-        break;
-      case 'references':
-        r.references = { items: text.split('\n').filter(Boolean) };
-        break;
-      default:
-        break;
-    }
-    handleReportChange(r);
-  }, [currentReport, handleReportChange]);
-
   // ── Render ────────────────────────────────────────────────────────────────
   if (view === 'editor' && currentSpace && currentReport) {
     return (
       <div className="app">
-        <ChatPanel
-          apiKey={apiKey}
-          activeBlock={activeBlock}
-          onApplyToBlock={handleApplyToBlock}
-          report={currentReport}
-          collapsed={chatCollapsed}
-        />
         <ReportEditor
           global={globalSettings}
           space={currentSpace}
@@ -166,8 +124,7 @@ function App() {
           onExport={handleExport}
           onBack={() => setView('home')}
           onSave={handleSave}
-          chatCollapsed={chatCollapsed}
-          onToggleChat={() => setChatCollapsed(v => !v)}
+          apiKey={apiKey}
         />
         {showSettings && (
           <GlobalSettingsModal

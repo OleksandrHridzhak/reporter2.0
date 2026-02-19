@@ -1,4 +1,4 @@
-import type { GlobalSettings, Space, LabReport, AbstractData, WorkProgressData, ConclusionData, AppendixData, ReferencesData } from '../types/report';
+import type { GlobalSettings, Space, LabReport, AbstractData, WorkProgressData, ConclusionData, AppendixData } from '../types/report';
 
 export const defaultGlobalSettings: GlobalSettings = {
   faculty: 'Факультет електроніки та комп\'ютерних технологій',
@@ -16,8 +16,6 @@ export const defaultConclusion: ConclusionData = { content: '' };
 
 export const defaultAppendix: AppendixData = { title: 'Код програми', code: '' };
 
-export const defaultReferences: ReferencesData = { items: [''] };
-
 export function createDefaultReport(labNumber = '1'): LabReport {
   return {
     id: Date.now().toString(),
@@ -28,7 +26,6 @@ export function createDefaultReport(labNumber = '1'): LabReport {
     workProgress: { items: [{ id: Date.now().toString(), text: '' }] },
     conclusion: { ...defaultConclusion },
     appendix: { ...defaultAppendix },
-    references: { items: [''] },
   };
 }
 
@@ -96,12 +93,6 @@ plt.ylabel("H(x)")
 plt.title("Ентропія")
 plt.show()`,
     },
-    references: {
-      items: [
-        'Шеннон К. Математична теорія зв\u2019язку. — М.: ИЛ, 1963. — 243 с.',
-        'Теорія інформації [Електронний ресурс]. — Режим доступу: https://uk.wikipedia.org/wiki/Ентропія_Шеннона',
-      ],
-    },
   };
 
   const report2: LabReport = {
@@ -123,7 +114,6 @@ plt.show()`,
       content: 'В результаті роботи було реалізовано алгоритм Хафмана, який дозволяє досягти стиснення даних залежно від частоти входження символів.',
     },
     appendix: { title: 'Код програми', code: '' },
-    references: { items: [''] },
   };
 
   return {
