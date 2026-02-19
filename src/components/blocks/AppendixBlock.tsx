@@ -1,18 +1,27 @@
 import React from 'react';
-import type { AppendixData } from '../../types/report';
+import type { AppendixData, LabReport } from '../../types/report';
+import { AiBlockButton } from '../AiBlockButton';
 
 interface Props {
   data: AppendixData;
   onChange: (data: AppendixData) => void;
   isActive: boolean;
   onActivate: () => void;
+  apiKey: string;
+  report: LabReport;
 }
 
-export const AppendixBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate }) => {
+export const AppendixBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate, apiKey, report }) => {
   return (
     <div className={`block ${isActive ? 'block--active' : ''}`} onClick={onActivate}>
       <div className="block__header">
         <h2 className="block__title">🗂️ Додаток</h2>
+        <AiBlockButton
+          blockType="appendix"
+          report={report}
+          apiKey={apiKey}
+          onApply={text => onChange({ ...data, code: text })}
+        />
       </div>
       <div className="block__body">
         <div className="field-row">

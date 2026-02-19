@@ -127,7 +127,7 @@ export async function exportToDocx(
   report: LabReport,
   filename = 'звіт'
 ): Promise<void> {
-  const { abstract, workProgress, conclusion, appendix, references, enabledBlocks } = report;
+  const { abstract, workProgress, conclusion, appendix, enabledBlocks } = report;
   const year = new Date().getFullYear().toString();
 
   // ── Title page ──────────────────────────────────────────────────────────────
@@ -216,14 +216,6 @@ export async function exportToDocx(
       children.push(makeMonospace(line));
     });
     children.push(makeEmpty());
-  }
-
-  // ── Список джерел ──────────────────────────────────────────────────────────
-  if (enabledBlocks.includes('references') && references.items.filter(Boolean).length > 0) {
-    children.push(makeHeading('Список використаних джерел'));
-    references.items.filter(Boolean).forEach((ref, i) => {
-      children.push(makeBody(`${i + 1}. ${ref}`));
-    });
   }
 
   // ── Build document ─────────────────────────────────────────────────────────

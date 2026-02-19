@@ -1,4 +1,4 @@
-export type OptionalBlockType = 'abstract' | 'workProgress' | 'conclusion' | 'appendix' | 'references';
+export type OptionalBlockType = 'abstract' | 'workProgress' | 'conclusion' | 'appendix';
 export type BlockType = 'titlePage' | OptionalBlockType;
 
 // ──────────────────────────────────────────────
@@ -28,12 +28,12 @@ export interface LabReport {
   id: string;
   labNumber: string;
   topic: string;
+  methodicalText?: string;
   enabledBlocks: OptionalBlockType[];
   abstract: AbstractData;
   workProgress: WorkProgressData;
   conclusion: ConclusionData;
   appendix: AppendixData;
-  references: ReferencesData;
 }
 
 // ──────────────────────────────────────────────
@@ -61,10 +61,6 @@ export interface ConclusionData {
 export interface AppendixData {
   title: string;
   code: string;
-}
-
-export interface ReferencesData {
-  items: string[];
 }
 
 // ──────────────────────────────────────────────

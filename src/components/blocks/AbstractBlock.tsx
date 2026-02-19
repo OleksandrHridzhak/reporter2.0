@@ -1,18 +1,27 @@
 import React from 'react';
-import type { AbstractData } from '../../types/report';
+import type { AbstractData, LabReport } from '../../types/report';
+import { AiBlockButton } from '../AiBlockButton';
 
 interface Props {
   data: AbstractData;
   onChange: (data: AbstractData) => void;
   isActive: boolean;
   onActivate: () => void;
+  apiKey: string;
+  report: LabReport;
 }
 
-export const AbstractBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate }) => {
+export const AbstractBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate, apiKey, report }) => {
   return (
     <div className={`block ${isActive ? 'block--active' : ''}`} onClick={onActivate}>
       <div className="block__header">
         <h2 className="block__title">📋 Мета роботи</h2>
+        <AiBlockButton
+          blockType="abstract"
+          report={report}
+          apiKey={apiKey}
+          onApply={text => onChange({ content: text })}
+        />
       </div>
       <div className="block__body">
         <div className="field-row">

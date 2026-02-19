@@ -5,14 +5,12 @@ import { AbstractBlock } from './blocks/AbstractBlock';
 import { WorkProgressBlock } from './blocks/WorkProgressBlock';
 import { ConclusionBlock } from './blocks/ConclusionBlock';
 import { AppendixBlock } from './blocks/AppendixBlock';
-import { ReferencesBlock } from './blocks/ReferencesBlock';
 
 const OPTIONAL_BLOCKS: { key: OptionalBlockType; label: string }[] = [
   { key: 'abstract',     label: '📋 Мета' },
   { key: 'workProgress', label: '🔧 Хід роботи' },
   { key: 'conclusion',   label: '✅ Висновки' },
   { key: 'appendix',     label: '🗂️ Додаток' },
-  { key: 'references',   label: '📚 Список джерел' },
 ];
 
 interface Props {
@@ -25,8 +23,7 @@ interface Props {
   onExport: () => void;
   onBack: () => void;
   onSave: () => void;
-  chatCollapsed: boolean;
-  onToggleChat: () => void;
+  apiKey: string;
 }
 
 export const ReportEditor: React.FC<Props> = ({
@@ -39,8 +36,7 @@ export const ReportEditor: React.FC<Props> = ({
   onExport,
   onBack,
   onSave,
-  chatCollapsed,
-  onToggleChat,
+  apiKey,
 }) => {
   const toggleBlock = (key: OptionalBlockType) => {
     const enabled = report.enabledBlocks.includes(key)
@@ -62,13 +58,6 @@ export const ReportEditor: React.FC<Props> = ({
           </div>
         </div>
         <div className="toolbar-actions">
-          <button
-            className={`btn btn--secondary btn--icon-only`}
-            onClick={onToggleChat}
-            title={chatCollapsed ? 'Показати AI панель' : 'Сховати AI панель'}
-          >
-            {chatCollapsed ? '💬' : '✕💬'}
-          </button>
           <button className="btn btn--secondary" onClick={onSave}>💾 Зберегти JSON</button>
           <button className="btn btn--primary" onClick={onExport}>⬇️ Експорт DOCX</button>
         </div>
@@ -104,6 +93,8 @@ export const ReportEditor: React.FC<Props> = ({
             onChange={d => onReportChange({ ...report, abstract: d })}
             isActive={activeBlock === 'abstract'}
             onActivate={() => onActivateBlock('abstract')}
+            apiKey={apiKey}
+            report={report}
           />
         )}
 
@@ -113,6 +104,8 @@ export const ReportEditor: React.FC<Props> = ({
             onChange={d => onReportChange({ ...report, workProgress: d })}
             isActive={activeBlock === 'workProgress'}
             onActivate={() => onActivateBlock('workProgress')}
+            apiKey={apiKey}
+            report={report}
           />
         )}
 
@@ -122,6 +115,8 @@ export const ReportEditor: React.FC<Props> = ({
             onChange={d => onReportChange({ ...report, conclusion: d })}
             isActive={activeBlock === 'conclusion'}
             onActivate={() => onActivateBlock('conclusion')}
+            apiKey={apiKey}
+            report={report}
           />
         )}
 
@@ -131,15 +126,8 @@ export const ReportEditor: React.FC<Props> = ({
             onChange={d => onReportChange({ ...report, appendix: d })}
             isActive={activeBlock === 'appendix'}
             onActivate={() => onActivateBlock('appendix')}
-          />
-        )}
-
-        {has('references') && (
-          <ReferencesBlock
-            data={report.references}
-            onChange={d => onReportChange({ ...report, references: d })}
-            isActive={activeBlock === 'references'}
-            onActivate={() => onActivateBlock('references')}
+            apiKey={apiKey}
+            report={report}
           />
         )}
       </div>
