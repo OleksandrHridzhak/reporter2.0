@@ -9,11 +9,13 @@ interface Props {
   onActivate: () => void;
   apiKey: string;
   report: LabReport;
+  exampleReports?: LabReport[];
+  customPrompt?: string;
 }
 
 type AttachType = 'code' | 'image';
 
-export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate, apiKey, report }) => {
+export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate, apiKey, report, exampleReports, customPrompt }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pendingItemIdRef = useRef<string | null>(null);
 
@@ -94,6 +96,8 @@ export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, o
               })),
             });
           }}
+          exampleReports={exampleReports}
+          customPrompt={customPrompt}
         />
       </div>
       <div className="block__body">

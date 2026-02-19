@@ -47,6 +47,11 @@ export const ReportEditor: React.FC<Props> = ({
 
   const has = (key: OptionalBlockType) => report.enabledBlocks.includes(key);
 
+  const exampleReports = (global.useOldReportsAsExamples ?? false)
+    ? space.reports.filter(r => r.isDone && r.id !== report.id)
+    : [];
+  const customPrompt = global.customPrompt ?? '';
+
   return (
     <main className="report-editor">
       <div className="report-editor__toolbar">
@@ -95,6 +100,8 @@ export const ReportEditor: React.FC<Props> = ({
             onActivate={() => onActivateBlock('abstract')}
             apiKey={apiKey}
             report={report}
+            exampleReports={exampleReports}
+            customPrompt={customPrompt}
           />
         )}
 
@@ -106,6 +113,8 @@ export const ReportEditor: React.FC<Props> = ({
             onActivate={() => onActivateBlock('workProgress')}
             apiKey={apiKey}
             report={report}
+            exampleReports={exampleReports}
+            customPrompt={customPrompt}
           />
         )}
 
@@ -117,6 +126,8 @@ export const ReportEditor: React.FC<Props> = ({
             onActivate={() => onActivateBlock('conclusion')}
             apiKey={apiKey}
             report={report}
+            exampleReports={exampleReports}
+            customPrompt={customPrompt}
           />
         )}
 
@@ -128,6 +139,8 @@ export const ReportEditor: React.FC<Props> = ({
             onActivate={() => onActivateBlock('appendix')}
             apiKey={apiKey}
             report={report}
+            exampleReports={exampleReports}
+            customPrompt={customPrompt}
           />
         )}
       </div>

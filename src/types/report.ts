@@ -8,6 +8,8 @@ export interface GlobalSettings {
   faculty: string;
   studentName: string;
   studentGroup: string;
+  useOldReportsAsExamples: boolean;
+  customPrompt: string;
 }
 
 // ──────────────────────────────────────────────
@@ -29,6 +31,7 @@ export interface LabReport {
   labNumber: string;
   topic: string;
   methodicalText?: string;
+  isDone?: boolean;
   enabledBlocks: OptionalBlockType[];
   abstract: AbstractData;
   workProgress: WorkProgressData;

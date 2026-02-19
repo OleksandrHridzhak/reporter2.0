@@ -14,7 +14,10 @@ const KEY_API      = 'gemini_api_key';
 
 // ─── Persistence helpers ─────────────────────────────────────────────────────
 function loadSettings(): GlobalSettings {
-  try { return JSON.parse(localStorage.getItem(KEY_SETTINGS) ?? '') as GlobalSettings; }
+  try {
+    const parsed = JSON.parse(localStorage.getItem(KEY_SETTINGS) ?? '') as Partial<GlobalSettings>;
+    return { ...defaultGlobalSettings, ...parsed };
+  }
   catch { return { ...defaultGlobalSettings }; }
 }
 

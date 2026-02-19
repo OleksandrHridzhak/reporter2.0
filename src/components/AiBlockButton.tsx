@@ -9,7 +9,17 @@ const BLOCK_DESCS: Record<OptionalBlockType, string> = {
   appendix:     'вміст додатку (код програми або інший матеріал)',
 };
 
-function buildPrompt(blockType: OptionalBlockType, report: LabReport): string {
+function extractSectionText(report: LabReport, blockType: OptionalBlockType): string {
+  if (blockType === 'abstract') return report.abstract?.content ?? '';
+  if (blockType === 'conclusion') return report.conclusion?.content ?? '';
+  if (blockType === 'workProgress') {
+    return (report.workProgress?.items ?? []).map((it, i) => `${i + 1}. ${it.text}`).join('\n');
+  }
+  if (blockType === 'appendix') return report.appendix?.code ?? '';
+  return '';
+}
+
+function buildPrompt(blockType: OptionalBlockType, report: LabReport, exampleReports: LabReport[], customPrompt: string): string {
   const desc = BLOCK_DESCS[blockType];
   const parts: string[] = [
     `Ти асистент для написання академічних звітів. Стиль: офіційний, науковий, українська мова. Дотримуйся стандартів ДСТУ.`,
@@ -17,6 +27,21 @@ function buildPrompt(blockType: OptionalBlockType, report: LabReport): string {
   ];
   if (report.methodicalText?.trim()) {
     parts.push(`\nМетодичні вказівки:\n${report.methodicalText.trim()}`);
+  }
+  if (customPrompt.trim()) {
+    parts.push(`\nДодаткові правила:\n${customPrompt.trim()}`);
+  }
+  if (exampleReports.length > 0) {
+    const examples = exampleReports
+      .map(r => {
+        const sectionText = extractSectionText(r, blockType);
+        if (!sectionText.trim()) return null;
+        return `Лабораторна №${r.labNumber}${r.topic ? ` (${r.topic})` : ''}:\n${sectionText.trim()}`;
+      })
+      .filter(Boolean);
+    if (examples.length > 0) {
+      parts.push(`\nПриклади з попередніх виконаних звітів (орієнтуйся на стиль та структуру):\n${examples.join('\n\n')}`);
+    }
   }
   parts.push(
     `\nСтвори РІВНО 3 різних варіанти. Розділяй їх рядком "===VARIANT===". Пиши тільки текст розділу без зайвих пояснень та заголовків.`
@@ -29,9 +54,11 @@ interface Props {
   report: LabReport;
   apiKey: string;
   onApply: (text: string) => void;
+  exampleReports?: LabReport[];
+  customPrompt?: string;
 }
 
-export const AiBlockButton: React.FC<Props> = ({ blockType, report, apiKey, onApply }) => {
+export const AiBlockButton: React.FC<Props> = ({ blockType, report, apiKey, onApply, exampleReports = [], customPrompt = '' }) => {
   const [variants, setVariants] = useState<string[]>([]);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
@@ -51,7 +78,7 @@ export const AiBlockButton: React.FC<Props> = ({ blockType, report, apiKey, onAp
     try {
       const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-      const result = await model.generateContent(buildPrompt(blockType, report));
+      const result = await model.generateContent(buildPrompt(blockType, report, exampleReports, customPrompt));
       const text   = result.response.text();
       const parts  = text.split(/===VARIANT===/).map(s => s.trim()).filter(Boolean);
       setVariants(parts.length >= 2 ? parts : [text.trim()]);

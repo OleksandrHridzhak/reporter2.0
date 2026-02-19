@@ -9,9 +9,11 @@ interface Props {
   onActivate: () => void;
   apiKey: string;
   report: LabReport;
+  exampleReports?: LabReport[];
+  customPrompt?: string;
 }
 
-export const AbstractBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate, apiKey, report }) => {
+export const AbstractBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate, apiKey, report, exampleReports, customPrompt }) => {
   return (
     <div className={`block ${isActive ? 'block--active' : ''}`} onClick={onActivate}>
       <div className="block__header">
@@ -21,6 +23,8 @@ export const AbstractBlock: React.FC<Props> = ({ data, onChange, isActive, onAct
           report={report}
           apiKey={apiKey}
           onApply={text => onChange({ content: text })}
+          exampleReports={exampleReports}
+          customPrompt={customPrompt}
         />
       </div>
       <div className="block__body">
