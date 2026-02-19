@@ -1054,7 +1054,7 @@ body {
 
 .progress-num {
   font-weight: 700;
-  color: var(--primary);
+  color: var(--text);
   min-width: 24px;
   text-align: right;
   flex-shrink: 0;
@@ -1076,4 +1076,59 @@ body {
   outline: none;
   border-color: var(--border-active);
   background: var(--bg-white);
+}
+
+/* =============================================
+   WORK PROGRESS – attachments
+   ============================================= */
+.progress-item-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-attach {
+  padding: 4px 7px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-light);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: monospace;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-attach:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.btn-attach--active {
+  background: rgba(26, 86, 219, 0.08);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.progress-code-input {
+  margin-left: 32px;
+  width: calc(100% - 32px);
+}
+
+.progress-image-wrap {
+  margin-left: 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: inline-block;
+  max-width: calc(100% - 32px);
+}
+
+.progress-image {
+  display: block;
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
 }

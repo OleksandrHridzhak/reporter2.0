@@ -25,6 +25,8 @@ interface Props {
   onExport: () => void;
   onBack: () => void;
   onSave: () => void;
+  chatCollapsed: boolean;
+  onToggleChat: () => void;
 }
 
 export const ReportEditor: React.FC<Props> = ({
@@ -37,6 +39,8 @@ export const ReportEditor: React.FC<Props> = ({
   onExport,
   onBack,
   onSave,
+  chatCollapsed,
+  onToggleChat,
 }) => {
   const toggleBlock = (key: OptionalBlockType) => {
     const enabled = report.enabledBlocks.includes(key)
@@ -58,6 +62,13 @@ export const ReportEditor: React.FC<Props> = ({
           </div>
         </div>
         <div className="toolbar-actions">
+          <button
+            className={`btn btn--secondary btn--icon-only`}
+            onClick={onToggleChat}
+            title={chatCollapsed ? 'Показати AI панель' : 'Сховати AI панель'}
+          >
+            {chatCollapsed ? '💬' : '✕💬'}
+          </button>
           <button className="btn btn--secondary" onClick={onSave}>💾 Зберегти JSON</button>
           <button className="btn btn--primary" onClick={onExport}>⬇️ Експорт DOCX</button>
         </div>

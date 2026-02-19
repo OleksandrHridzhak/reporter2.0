@@ -16,6 +16,7 @@ interface Props {
   activeBlock: BlockType | null;
   onApplyToBlock: (block: BlockType, text: string) => void;
   report: LabReport;
+  collapsed?: boolean;
 }
 
 function getBlockContext(block: BlockType | null, report: LabReport): string {
@@ -30,7 +31,8 @@ function getBlockContext(block: BlockType | null, report: LabReport): string {
   }
 }
 
-export const ChatPanel: React.FC<Props> = ({ apiKey, activeBlock, onApplyToBlock, report }) => {
+export const ChatPanel: React.FC<Props> = ({ apiKey, activeBlock, onApplyToBlock, report, collapsed }) => {
+  if (collapsed) return null;
   const [prompt, setPrompt] = useState('');
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(activeBlock);
   const { messages, isLoading, error, sendMessage } = useGemini(apiKey);

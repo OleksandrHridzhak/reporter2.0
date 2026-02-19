@@ -46,6 +46,8 @@ export interface AbstractData {
 export interface WorkProgressItem {
   id: string;
   text: string;
+  itemCode?: string;       // optional code snippet under this step
+  imageBase64?: string;    // optional image (base64 data URL) under this step
 }
 
 export interface WorkProgressData {

@@ -12,6 +12,7 @@ import {
   AlignmentType,
   HeadingLevel,
   convertInchesToTwip,
+  ImageRun,
 } from 'docx';
 import { saveAs } from 'file-saver';
 import type { GlobalSettings, Space, LabReport } from '../types/report';
@@ -86,6 +87,32 @@ function makeEmpty(): Paragraph {
   });
 }
 
+/** Converts a base64 data URL to a DOCX image paragraph (max width ~14cm). */
+function makeImageParagraph(dataUrl: string): Paragraph | null {
+  try {
+    const [header, base64] = dataUrl.split(',');
+    if (!base64) return null;
+    const mimeMatch = header.match(/data:([^;]+);/);
+    const mimeType  = (mimeMatch?.[1] ?? 'image/png') as 'image/png' | 'image/jpeg' | 'image/gif';
+    const binary    = atob(base64);
+    const bytes     = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Paragraph({
+      children: [
+        new ImageRun({
+          data: bytes.buffer,
+          transformation: { width: 530, height: 300 }, // ~14cm × 8cm, adjust as needed
+          type: mimeType === 'image/jpeg' ? 'jpg' : 'png',
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 120, after: 120 },
+    });
+  } catch {
+    return null;
+  }
+}
+
 // ─── Main export function ─────────────────────────────────────────────────────
 export async function exportToDocx(
   global: GlobalSettings,
@@ -131,20 +158,34 @@ export async function exportToDocx(
   // Format: "1. text" — one paragraph per item, no empty lines between items
   if (enabledBlocks.includes('workProgress') && workProgress.items.length > 0) {
     children.push(makeHeading('Хід роботи'));
-    workProgress.items.forEach((item, i) => {
+    for (const [i, item] of workProgress.items.entries()) {
       if (item.text.trim()) {
         children.push(makeBody(`${i + 1}. ${item.text}`, false));
       }
-    });
+      // Optional code snippet under the item
+      if (item.itemCode !== undefined && item.itemCode.trim()) {
+        item.itemCode.split('\n').forEach(line => {
+          children.push(makeMonospace(line));
+        });
+      }
+      // Optional image under the item
+      if (item.imageBase64) {
+        try {
+          const imgPara = makeImageParagraph(item.imageBase64);
+          if (imgPara) children.push(imgPara);
+        } catch {
+          // skip if image cannot be embedded
+        }
+      }
+    }
     children.push(makeEmpty());
   }
 
-  // ── Висновки ───────────────────────────────────────────────────────────────
+  // ── Висновок ───────────────────────────────────────────────────────────────
+  // Inline format like "Мета роботи:", not a standalone centered heading
   if (enabledBlocks.includes('conclusion') && conclusion.content.trim()) {
-    children.push(makeHeading('Висновки'));
-    conclusion.content.split('\n').filter(Boolean).forEach(line => {
-      children.push(makeBody(line));
-    });
+    children.push(makeEmpty());
+    children.push(makeBody(`Висновок: ${conclusion.content}`));
     children.push(makeEmpty());
   }
 

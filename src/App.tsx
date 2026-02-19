@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { BlockType, GlobalSettings, Space, LabReport } from './types/report';
-import { defaultGlobalSettings } from './utils/defaults';
+import { defaultGlobalSettings, createDemoSpace } from './utils/defaults';
 import { exportToDocx } from './utils/docxExport';
 import { HomeScreen } from './components/HomeScreen';
 import { GlobalSettingsModal } from './components/GlobalSettingsModal';
@@ -20,8 +20,16 @@ function loadSettings(): GlobalSettings {
 }
 
 function loadSpaces(): Space[] {
-  try { return JSON.parse(localStorage.getItem(KEY_SPACES) ?? '[]') as Space[]; }
-  catch { return []; }
+  try {
+    const raw = localStorage.getItem(KEY_SPACES);
+    if (!raw) {
+      // First launch: seed with demo space
+      const demo = [createDemoSpace()];
+      localStorage.setItem(KEY_SPACES, JSON.stringify(demo));
+      return demo;
+    }
+    return JSON.parse(raw) as Space[];
+  } catch { return []; }
 }
 
 function loadApiKey(): string {
@@ -44,7 +52,8 @@ function App() {
   const [selectedSpaceId, setSelectedSpaceId]   = useState<string | null>(null);
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [activeBlock, setActiveBlock]           = useState<BlockType | null>(null);
-  const [showSettings, setShowSettings]         = useState(false);
+  const [showSettings, setShowSettings]     = useState(false);
+  const [chatCollapsed, setChatCollapsed]   = useState(false);
 
   // ── Derived current space/report ──────────────────────────────────────────
   const currentSpace  = spaces.find(s => s.id === selectedSpaceId) ?? null;
@@ -145,6 +154,7 @@ function App() {
           activeBlock={activeBlock}
           onApplyToBlock={handleApplyToBlock}
           report={currentReport}
+          collapsed={chatCollapsed}
         />
         <ReportEditor
           global={globalSettings}
@@ -156,6 +166,8 @@ function App() {
           onExport={handleExport}
           onBack={() => setView('home')}
           onSave={handleSave}
+          chatCollapsed={chatCollapsed}
+          onToggleChat={() => setChatCollapsed(v => !v)}
         />
         {showSettings && (
           <GlobalSettingsModal
