@@ -120,15 +120,37 @@ function makeImageParagraph(dataUrl: string): Paragraph | null {
   }
 }
 
+// ─── Helper to create abbreviation from course name (first letters) ──────────
+function makeAbbreviation(text: string): string {
+  if (!text || !text.trim()) return '';
+  return text
+    .trim()
+    .split(/\s+/)
+    .map(word => word[0])
+    .join('')
+    .toUpperCase();
+}
+
 // ─── Main export function ─────────────────────────────────────────────────────
 export async function exportToDocx(
   global: GlobalSettings,
   space: Space,
   report: LabReport,
-  filename = 'звіт'
+  filename?: string
 ): Promise<void> {
   const { abstract, workProgress, conclusion, appendix, enabledBlocks } = report;
   const year = new Date().getFullYear().toString();
+
+  // Auto-generate filename: Прізвище_Ім'я_ЛР{номер}_{скорочення_курсу}
+  if (!filename) {
+    const nameParts = global.studentName.trim().split(/\s+/);
+    const lastName = nameParts[0] || '';
+    const firstName = nameParts[1] || '';
+    const labNum = report.labNumber || '1';
+    const courseAbbr = makeAbbreviation(space.courseName || '');
+    
+    filename = `${lastName}_${firstName}_ЛР${labNum}${courseAbbr ? '_' + courseAbbr : ''}`;
+  }
 
   // ── Title page ──────────────────────────────────────────────────────────────
   const titleSection: Paragraph[] = [

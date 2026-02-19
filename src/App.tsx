@@ -92,9 +92,8 @@ function App() {
   // ── Export ────────────────────────────────────────────────────────────────
   const handleExport = useCallback(async () => {
     if (!currentSpace || !currentReport) return;
-    const name = `Лаб_${currentReport.labNumber}_${currentReport.topic || 'звіт'}`
-      .replace(/[^a-zA-Zа-яА-ЯіїєёІЇЄ0-9_\- ]/g, '').trim();
-    await exportToDocx(globalSettings, currentSpace, currentReport, name || 'звіт');
+    // Auto-generate filename in docxExport: Прізвище_Ім'я_ЛР{номер}_{скорочення}
+    await exportToDocx(globalSettings, currentSpace, currentReport);
   }, [globalSettings, currentSpace, currentReport]);
 
   // ── Save as JSON ──────────────────────────────────────────────────────────
