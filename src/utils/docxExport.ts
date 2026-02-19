@@ -13,7 +13,7 @@ import type { ReportData } from '../types/report';
 const FONT = 'Times New Roman';
 const FONT_SIZE = 28; // 14pt in half-points
 const LINE_SPACING = { line: 360, lineRule: 'auto' as const }; // 1.5 line spacing
-const INDENT = convertInchesToTwip(0.49); // 1.25cm first-line indent
+const INDENT = convertInchesToTwip(0.492); // 1.25cm first-line indent
 
 function makeHeading(text: string, level: 1 | 2 = 1): Paragraph {
   return new Paragraph({
