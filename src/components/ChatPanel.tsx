@@ -72,7 +72,7 @@ export const ChatPanel: React.FC<Props> = ({
     <aside className="chat-panel">
       <div className="chat-panel__header">
         <h2 className="chat-panel__title">🤖 AI Асистент</h2>
-        <p className="chat-panel__subtitle">Gemini 1.5 Flash</p>
+        <p className="chat-panel__subtitle">Gemini 2.5 Flash</p>
       </div>
 
       <div className="chat-panel__api-key">

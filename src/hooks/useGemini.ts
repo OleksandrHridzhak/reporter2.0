@@ -26,7 +26,8 @@ export function useGemini(apiKey: string) {
 
       try {
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        // Use Gemini 2.5 Flash - the latest stable model
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
         const systemPrompt = `Ти асистент для написання академічних звітів. Стиль: офіційний, науковий, українська мова. 
 Дотримуйся стандартів ДСТУ та вимог ЛНУ ім. Івана Франка.
