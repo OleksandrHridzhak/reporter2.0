@@ -46,9 +46,28 @@ export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, o
     const file = e.target.files?.[0];
     const id   = pendingItemIdRef.current;
     if (!file || !id) return;
+
+    // Validate MIME type
+    if (!file.type.startsWith('image/')) {
+      alert('Будь ласка, оберіть файл зображення (PNG, JPEG, GIF тощо).');
+      e.target.value = '';
+      pendingItemIdRef.current = null;
+      return;
+    }
+    // Validate file size (max 5 MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Зображення завелике. Максимальний розмір — 5 МБ.');
+      e.target.value = '';
+      pendingItemIdRef.current = null;
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = ev => {
       updateItem(id, { imageBase64: ev.target?.result as string });
+    };
+    reader.onerror = () => {
+      alert('Не вдалося прочитати файл. Спробуйте інший.');
     };
     reader.readAsDataURL(file);
     e.target.value = '';

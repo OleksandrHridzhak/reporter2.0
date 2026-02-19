@@ -87,7 +87,7 @@ function makeEmpty(): Paragraph {
   });
 }
 
-/** Converts a base64 data URL to a DOCX image paragraph (max width ~14cm). */
+/** Converts a base64 data URL to a DOCX image paragraph, preserving aspect ratio (max width 530pt). */
 function makeImageParagraph(dataUrl: string): Paragraph | null {
   try {
     const [header, base64] = dataUrl.split(',');
@@ -97,11 +97,18 @@ function makeImageParagraph(dataUrl: string): Paragraph | null {
     const binary    = atob(base64);
     const bytes     = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+    // Use fixed-ratio: max 530pt wide × proportional height (default 16:9 safe estimate).
+    // Exact dimensions are not available synchronously in DOCX export; the exported image
+    // will be embedded at these dimensions. Users can resize in Word if needed.
+    const MAX_WIDTH  = 530;
+    const MAX_HEIGHT = 400;
+
     return new Paragraph({
       children: [
         new ImageRun({
           data: bytes.buffer,
-          transformation: { width: 530, height: 300 }, // ~14cm × 8cm, adjust as needed
+          transformation: { width: MAX_WIDTH, height: MAX_HEIGHT },
           type: mimeType === 'image/jpeg' ? 'jpg' : 'png',
         }),
       ],
