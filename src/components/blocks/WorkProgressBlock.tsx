@@ -1,5 +1,5 @@
 import React from 'react';
-import type { WorkProgressData, WorkProgressStep } from '../../types/report';
+import type { WorkProgressData, WorkProgressItem } from '../../types/report';
 
 interface Props {
   data: WorkProgressData;
@@ -9,17 +9,17 @@ interface Props {
 }
 
 export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, onActivate }) => {
-  const addStep = () => {
-    const id = (Date.now()).toString();
-    onChange({ steps: [...data.steps, { id, title: `Крок ${data.steps.length + 1}`, content: '' }] });
+  const addItem = () => {
+    onChange({ items: [...data.items, { id: Date.now().toString(), text: '' }] });
   };
 
-  const removeStep = (id: string) => {
-    onChange({ steps: data.steps.filter(s => s.id !== id) });
+  const removeItem = (id: string) => {
+    const items = data.items.filter(s => s.id !== id);
+    onChange({ items: items.length ? items : [{ id: Date.now().toString(), text: '' }] });
   };
 
-  const updateStep = (id: string, patch: Partial<WorkProgressStep>) => {
-    onChange({ steps: data.steps.map(s => s.id === id ? { ...s, ...patch } : s) });
+  const updateItem = (id: string, patch: Partial<WorkProgressItem>) => {
+    onChange({ items: data.items.map(s => s.id === id ? { ...s, ...patch } : s) });
   };
 
   return (
@@ -28,38 +28,30 @@ export const WorkProgressBlock: React.FC<Props> = ({ data, onChange, isActive, o
         <h2 className="block__title">🔧 Хід роботи</h2>
       </div>
       <div className="block__body">
-        {data.steps.map((step, i) => (
-          <div key={step.id} className="step-card">
-            <div className="step-header">
-              <span className="step-num">{i + 1}.</span>
+        <div className="progress-list">
+          {data.items.map((item, i) => (
+            <div key={item.id} className="progress-item">
+              <span className="progress-num">{i + 1}.</span>
               <input
                 type="text"
-                className="step-title-input"
-                value={step.title}
-                onChange={e => updateStep(step.id, { title: e.target.value })}
-                placeholder="Назва кроку"
+                className="progress-text-input"
+                value={item.text}
+                onChange={e => updateItem(item.id, { text: e.target.value })}
+                placeholder="Текст пункту..."
                 onClick={e => e.stopPropagation()}
               />
-              {data.steps.length > 1 && (
+              {data.items.length > 1 && (
                 <button
                   className="btn-icon"
-                  onClick={e => { e.stopPropagation(); removeStep(step.id); }}
-                  title="Видалити крок"
+                  onClick={e => { e.stopPropagation(); removeItem(item.id); }}
+                  title="Видалити пункт"
                 >✕</button>
               )}
             </div>
-            <textarea
-              className="step-content"
-              value={step.content}
-              onChange={e => updateStep(step.id, { content: e.target.value })}
-              rows={5}
-              placeholder="Опис кроку, код, результати..."
-              onClick={e => e.stopPropagation()}
-            />
-          </div>
-        ))}
-        <button className="btn-add" onClick={e => { e.stopPropagation(); addStep(); }}>
-          + Додати крок
+          ))}
+        </div>
+        <button className="btn-add" onClick={e => { e.stopPropagation(); addItem(); }}>
+          + Додати пункт
         </button>
       </div>
     </div>

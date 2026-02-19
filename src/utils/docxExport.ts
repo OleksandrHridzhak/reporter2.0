@@ -1,3 +1,9 @@
+/**
+ * docxExport.ts – DOCX export for Reporter 2.0
+ *
+ * To customize the document template, see CUSTOMIZATION.md at the repo root.
+ * Key style constants live at the top of this file.
+ */
 import {
   Document,
   Packer,
@@ -8,19 +14,35 @@ import {
   convertInchesToTwip,
 } from 'docx';
 import { saveAs } from 'file-saver';
-import type { ReportData } from '../types/report';
+import type { GlobalSettings, Space, LabReport } from '../types/report';
 
-const FONT = 'Times New Roman';
-const FONT_SIZE = 28; // 14pt in half-points
-const LINE_SPACING = { line: 360, lineRule: 'auto' as const }; // 1.5 line spacing
-const INDENT = convertInchesToTwip(0.492); // 1.25cm first-line indent
+// ─── Typography ──────────────────────────────────────────────────────────────
+const FONT       = 'Times New Roman'; // Main body font (DSTU)
+const FONT_SIZE  = 28;                // 14 pt (in half-points)
+const CODE_FONT  = 'Courier New';     // Font for code blocks (Appendix)
+const CODE_SIZE  = 24;                // 12 pt
 
+// ─── Spacing ─────────────────────────────────────────────────────────────────
+const LINE_SPACING = { line: 360, lineRule: 'auto' as const }; // 1.5 line spacing (DSTU)
+const INDENT       = convertInchesToTwip(0.492);               // 1.25 cm paragraph indent
+
+// ─── Page margins (DSTU) ─────────────────────────────────────────────────────
+const MARGIN_LEFT   = convertInchesToTwip(1.18);  // 30 mm
+const MARGIN_RIGHT  = convertInchesToTwip(0.59);  // 15 mm
+const MARGIN_TOP    = convertInchesToTwip(0.98);  // 25 mm
+const MARGIN_BOTTOM = convertInchesToTwip(0.98);  // 25 mm
+
+// ─── Heading spacing ─────────────────────────────────────────────────────────
+const HEADING_BEFORE = 240; // twips before heading paragraph
+const HEADING_AFTER  = 120; // twips after heading paragraph
+
+// ─── Paragraph helpers ───────────────────────────────────────────────────────
 function makeHeading(text: string, level: 1 | 2 = 1): Paragraph {
   return new Paragraph({
     children: [new TextRun({ text, font: FONT, size: FONT_SIZE, bold: true })],
     heading: level === 1 ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
     alignment: level === 1 ? AlignmentType.CENTER : AlignmentType.LEFT,
-    spacing: { before: 240, after: 120, ...LINE_SPACING },
+    spacing: { before: HEADING_BEFORE, after: HEADING_AFTER, ...LINE_SPACING },
   });
 }
 
@@ -51,7 +73,7 @@ function makeRight(text: string, bold = false): Paragraph {
 
 function makeMonospace(text: string): Paragraph {
   return new Paragraph({
-    children: [new TextRun({ text, font: 'Courier New', size: 24 })],
+    children: [new TextRun({ text, font: CODE_FONT, size: CODE_SIZE })],
     alignment: AlignmentType.LEFT,
     spacing: { before: 0, after: 0, line: 240, lineRule: 'auto' },
   });
@@ -64,53 +86,60 @@ function makeEmpty(): Paragraph {
   });
 }
 
-export async function exportToDocx(report: ReportData, filename = 'звіт'): Promise<void> {
-  const { titlePage, enabledBlocks, abstract, workProgress, conclusion, appendix, references } = report;
+// ─── Main export function ─────────────────────────────────────────────────────
+export async function exportToDocx(
+  global: GlobalSettings,
+  space: Space,
+  report: LabReport,
+  filename = 'звіт'
+): Promise<void> {
+  const { abstract, workProgress, conclusion, appendix, references, enabledBlocks } = report;
+  const year = new Date().getFullYear().toString();
 
-  // Title page matching the exact LNU format
+  // ── Title page ──────────────────────────────────────────────────────────────
   const titleSection: Paragraph[] = [
     makeCentered('Міністерство освіти і науки України'),
     makeCentered('Львівський національний університет імені Івана Франка'),
-    makeCentered(titlePage.faculty),
+    makeCentered(global.faculty),
     makeEmpty(),
     makeEmpty(),
-    makeCentered(`ЛАБОРАТОРНА РОБОТА № ${titlePage.labNumber}`, true),
-    ...(titlePage.course ? [makeCentered(`з курсу "${titlePage.course}"`)] : []),
-    ...(titlePage.topic ? [makeCentered(`"${titlePage.topic}"`)] : []),
+    makeCentered(`ЛАБОРАТОРНА РОБОТА № ${report.labNumber}`, true),
+    ...(space.courseName ? [makeCentered(`з курсу "${space.courseName}"`)] : []),
+    ...(report.topic     ? [makeCentered(`"${report.topic}"`)]            : []),
     makeEmpty(),
     makeEmpty(),
     makeRight('Виконав:', true),
-    makeRight(`Ст. ${titlePage.studentGroup}`),
-    makeRight(titlePage.studentName),
+    makeRight(`Ст. ${global.studentGroup}`),
+    makeRight(global.studentName),
     makeRight('Перевірив:', true),
-    makeRight(`${titlePage.teacherTitle} ${titlePage.teacherName}`),
+    makeRight(`${space.teacherTitle} ${space.teacherName}`),
     makeEmpty(),
     makeEmpty(),
-    makeCentered(`Львів ${titlePage.year}`),
+    makeCentered(`Львів ${year}`),
   ];
 
   const children: Paragraph[] = [...titleSection];
 
+  // ── Мета роботи ────────────────────────────────────────────────────────────
   if (enabledBlocks.includes('abstract') && abstract.content.trim()) {
     children.push(makeEmpty());
     children.push(makeBody(`Мета роботи: ${abstract.content}`));
     children.push(makeEmpty());
   }
 
-  if (enabledBlocks.includes('workProgress') && workProgress.steps.length > 0) {
+  // ── Хід роботи ─────────────────────────────────────────────────────────────
+  // Format: "1. text" — one paragraph per item, no empty lines between items
+  if (enabledBlocks.includes('workProgress') && workProgress.items.length > 0) {
     children.push(makeHeading('Хід роботи'));
-    workProgress.steps.forEach((step, i) => {
-      const stepLabel = step.title.trim() ? `${i + 1}. ${step.title}` : `${i + 1}.`;
-      if (step.title.trim()) {
-        children.push(makeBody(stepLabel, false));
+    workProgress.items.forEach((item, i) => {
+      if (item.text.trim()) {
+        children.push(makeBody(`${i + 1}. ${item.text}`, false));
       }
-      step.content.split('\n').filter(Boolean).forEach(line => {
-        children.push(makeBody(line));
-      });
     });
     children.push(makeEmpty());
   }
 
+  // ── Висновки ───────────────────────────────────────────────────────────────
   if (enabledBlocks.includes('conclusion') && conclusion.content.trim()) {
     children.push(makeHeading('Висновки'));
     conclusion.content.split('\n').filter(Boolean).forEach(line => {
@@ -119,6 +148,7 @@ export async function exportToDocx(report: ReportData, filename = 'звіт'): P
     children.push(makeEmpty());
   }
 
+  // ── Додаток ────────────────────────────────────────────────────────────────
   if (enabledBlocks.includes('appendix')) {
     children.push(makeHeading('Додаток'));
     if (appendix.title.trim()) {
@@ -130,6 +160,7 @@ export async function exportToDocx(report: ReportData, filename = 'звіт'): P
     children.push(makeEmpty());
   }
 
+  // ── Список джерел ──────────────────────────────────────────────────────────
   if (enabledBlocks.includes('references') && references.items.filter(Boolean).length > 0) {
     children.push(makeHeading('Список використаних джерел'));
     references.items.filter(Boolean).forEach((ref, i) => {
@@ -137,6 +168,7 @@ export async function exportToDocx(report: ReportData, filename = 'звіт'): P
     });
   }
 
+  // ── Build document ─────────────────────────────────────────────────────────
   const doc = new Document({
     styles: {
       default: {
@@ -151,10 +183,10 @@ export async function exportToDocx(report: ReportData, filename = 'звіт'): P
         properties: {
           page: {
             margin: {
-              top: convertInchesToTwip(0.98),    // 25mm
-              right: convertInchesToTwip(0.59),   // 15mm
-              bottom: convertInchesToTwip(0.98),  // 25mm
-              left: convertInchesToTwip(1.18),    // 30mm
+              top:    MARGIN_TOP,
+              right:  MARGIN_RIGHT,
+              bottom: MARGIN_BOTTOM,
+              left:   MARGIN_LEFT,
             },
           },
         },

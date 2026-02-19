@@ -1,68 +1,53 @@
 import React, { useState, useRef, useEffect } from 'react';
-import type { BlockType, ChatMessage, ReportData } from '../types/report';
+import type { BlockType, ChatMessage, LabReport } from '../types/report';
 import { useGemini } from '../hooks/useGemini';
 
 const BLOCK_LABELS: Record<BlockType, string> = {
-  titlePage: '📄 Титульна сторінка',
-  abstract: '📋 Мета роботи',
+  titlePage:    '📄 Титульна сторінка',
+  abstract:     '📋 Мета роботи',
   workProgress: '🔧 Хід роботи',
-  conclusion: '✅ Висновки',
-  appendix: '🗂️ Додаток',
-  references: '📚 Список джерел',
+  conclusion:   '✅ Висновки',
+  appendix:     '🗂️ Додаток',
+  references:   '📚 Список джерел',
 };
 
 interface Props {
   apiKey: string;
-  onApiKeyChange: (key: string) => void;
   activeBlock: BlockType | null;
   onApplyToBlock: (block: BlockType, text: string) => void;
-  reportData: ReportData;
+  report: LabReport;
 }
 
-function getBlockContext(block: BlockType | null, reportData: ReportData): string {
+function getBlockContext(block: BlockType | null, report: LabReport): string {
   if (!block) return '';
   switch (block) {
-    case 'titlePage': return `Курс: ${reportData.titlePage.course}, Тема: ${reportData.titlePage.topic}`;
-    case 'abstract': return reportData.abstract.content;
-    case 'workProgress': return reportData.workProgress.steps.map(s => `${s.title}: ${s.content}`).join('\n');
-    case 'conclusion': return reportData.conclusion.content;
-    case 'appendix': return reportData.appendix.code;
-    case 'references': return reportData.references.items.join('\n');
-    default: return '';
+    case 'abstract':     return report.abstract.content;
+    case 'workProgress': return report.workProgress.items.map((s, i) => `${i + 1}. ${s.text}`).join('\n');
+    case 'conclusion':   return report.conclusion.content;
+    case 'appendix':     return report.appendix.code;
+    case 'references':   return report.references.items.join('\n');
+    default:             return '';
   }
 }
 
-export const ChatPanel: React.FC<Props> = ({
-  apiKey,
-  onApiKeyChange,
-  activeBlock,
-  onApplyToBlock,
-  reportData,
-}) => {
+export const ChatPanel: React.FC<Props> = ({ apiKey, activeBlock, onApplyToBlock, report }) => {
   const [prompt, setPrompt] = useState('');
   const [selectedBlock, setSelectedBlock] = useState<BlockType | null>(activeBlock);
   const { messages, isLoading, error, sendMessage } = useGemini(apiKey);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setSelectedBlock(activeBlock);
-  }, [activeBlock]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  useEffect(() => { setSelectedBlock(activeBlock); }, [activeBlock]);
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const handleSend = async () => {
     if (!prompt.trim()) return;
-    const context = getBlockContext(selectedBlock, reportData);
+    const context = getBlockContext(selectedBlock, report);
     await sendMessage(prompt, selectedBlock ?? undefined, context);
     setPrompt('');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      handleSend();
-    }
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleSend();
   };
 
   const handleApply = (msg: ChatMessage) => {
@@ -74,25 +59,7 @@ export const ChatPanel: React.FC<Props> = ({
     <aside className="chat-panel">
       <div className="chat-panel__header">
         <h2 className="chat-panel__title">🤖 AI Асистент</h2>
-        <p className="chat-panel__subtitle">Gemini 2.5 Flash</p>
-      </div>
-
-      <div className="chat-panel__api-key">
-        <label>API Ключ Gemini</label>
-        <input
-          type="password"
-          value={apiKey}
-          onChange={e => onApiKeyChange(e.target.value)}
-          placeholder="Вставте ваш Gemini API ключ..."
-        />
-        <a
-          href="https://aistudio.google.com/app/apikey"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="api-key-link"
-        >
-          Отримати безкоштовний API ключ →
-        </a>
+        <p className="chat-panel__subtitle">Gemini 1.5 Flash</p>
       </div>
 
       <div className="chat-panel__block-select">
@@ -111,12 +78,12 @@ export const ChatPanel: React.FC<Props> = ({
       <div className="chat-panel__messages">
         {messages.length === 0 && (
           <div className="chat-empty">
-            <p>👋 Привіт! Я допоможу вам написати звіт.</p>
-            <p>Виберіть блок і введіть запит, наприклад:</p>
+            <p>👋 Привіт! Я допоможу написати звіт.</p>
+            <p>Виберіть блок і введіть запит:</p>
             <ul>
               <li>«Напиши мету для лабораторної з ООП»</li>
               <li>«Допоможи написати висновки»</li>
-              <li>«Напиши хід роботи для кроку 1»</li>
+              <li>«Напиши хід роботи»</li>
             </ul>
           </div>
         )}
@@ -130,11 +97,7 @@ export const ChatPanel: React.FC<Props> = ({
             </div>
             <div className="chat-message__content">{msg.content}</div>
             {msg.role === 'assistant' && selectedBlock && (
-              <button
-                className="btn-apply"
-                onClick={() => handleApply(msg)}
-                title="Вставити в обраний блок"
-              >
+              <button className="btn-apply" onClick={() => handleApply(msg)}>
                 ↩ Вставити в «{BLOCK_LABELS[selectedBlock]}»
               </button>
             )}
@@ -143,14 +106,10 @@ export const ChatPanel: React.FC<Props> = ({
         {isLoading && (
           <div className="chat-message chat-message--assistant">
             <div className="chat-message__meta">🤖 Gemini</div>
-            <div className="chat-loading">
-              <span /><span /><span />
-            </div>
+            <div className="chat-loading"><span /><span /><span /></div>
           </div>
         )}
-        {error && (
-          <div className="chat-error">⚠️ {error}</div>
-        )}
+        {error && <div className="chat-error">⚠️ {error}</div>}
         <div ref={messagesEndRef} />
       </div>
 
@@ -159,14 +118,10 @@ export const ChatPanel: React.FC<Props> = ({
           value={prompt}
           onChange={e => setPrompt(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Введіть запит... (Ctrl+Enter для відправки)"
+          placeholder="Введіть запит... (Ctrl+Enter)"
           rows={3}
         />
-        <button
-          className="btn-send"
-          onClick={handleSend}
-          disabled={isLoading || !prompt.trim()}
-        >
+        <button className="btn-send" onClick={handleSend} disabled={isLoading || !prompt.trim()}>
           {isLoading ? '⏳' : '▶ Надіслати'}
         </button>
       </div>

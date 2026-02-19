@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BlockType, OptionalBlockType, ReportData } from '../types/report';
+import type { BlockType, OptionalBlockType, GlobalSettings, Space, LabReport } from '../types/report';
 import { TitlePageBlock } from './blocks/TitlePageBlock';
 import { AbstractBlock } from './blocks/AbstractBlock';
 import { WorkProgressBlock } from './blocks/WorkProgressBlock';
@@ -8,54 +8,57 @@ import { AppendixBlock } from './blocks/AppendixBlock';
 import { ReferencesBlock } from './blocks/ReferencesBlock';
 
 const OPTIONAL_BLOCKS: { key: OptionalBlockType; label: string }[] = [
-  { key: 'abstract', label: '📋 Мета' },
+  { key: 'abstract',     label: '📋 Мета' },
   { key: 'workProgress', label: '🔧 Хід роботи' },
-  { key: 'conclusion', label: '✅ Висновки' },
-  { key: 'appendix', label: '🗂️ Додаток' },
-  { key: 'references', label: '📚 Список джерел' },
+  { key: 'conclusion',   label: '✅ Висновки' },
+  { key: 'appendix',     label: '🗂️ Додаток' },
+  { key: 'references',   label: '📚 Список джерел' },
 ];
 
 interface Props {
-  data: ReportData;
-  onChange: (data: ReportData) => void;
+  global: GlobalSettings;
+  space: Space;
+  report: LabReport;
+  onReportChange: (r: LabReport) => void;
   activeBlock: BlockType | null;
   onActivateBlock: (block: BlockType) => void;
   onExport: () => void;
-  onNew: () => void;
+  onBack: () => void;
   onSave: () => void;
-  onLoad: () => void;
 }
 
 export const ReportEditor: React.FC<Props> = ({
-  data,
-  onChange,
+  global,
+  space,
+  report,
+  onReportChange,
   activeBlock,
   onActivateBlock,
   onExport,
-  onNew,
+  onBack,
   onSave,
-  onLoad,
 }) => {
   const toggleBlock = (key: OptionalBlockType) => {
-    const enabled = data.enabledBlocks.includes(key)
-      ? data.enabledBlocks.filter(b => b !== key)
-      : [...data.enabledBlocks, key];
-    onChange({ ...data, enabledBlocks: enabled });
+    const enabled = report.enabledBlocks.includes(key)
+      ? report.enabledBlocks.filter(b => b !== key)
+      : [...report.enabledBlocks, key];
+    onReportChange({ ...report, enabledBlocks: enabled });
   };
 
-  const has = (key: OptionalBlockType) => data.enabledBlocks.includes(key);
+  const has = (key: OptionalBlockType) => report.enabledBlocks.includes(key);
 
   return (
     <main className="report-editor">
       <div className="report-editor__toolbar">
         <div className="toolbar-left">
-          <span className="toolbar-logo">📝 Reporter 2.0</span>
-          <span className="toolbar-subtitle">ДСТУ + ЛНУ ім. Івана Франка</span>
+          <button className="btn btn--secondary btn--back" onClick={onBack}>← Назад</button>
+          <div>
+            <span className="toolbar-logo">{space.courseName}</span>
+            <span className="toolbar-subtitle"> · Лаб. #{report.labNumber}{report.topic ? ` · ${report.topic}` : ''}</span>
+          </div>
         </div>
         <div className="toolbar-actions">
-          <button className="btn btn--secondary" onClick={onNew}>🆕 Новий</button>
-          <button className="btn btn--secondary" onClick={onSave}>💾 Зберегти</button>
-          <button className="btn btn--secondary" onClick={onLoad}>📂 Завантажити</button>
+          <button className="btn btn--secondary" onClick={onSave}>💾 Зберегти JSON</button>
           <button className="btn btn--primary" onClick={onExport}>⬇️ Експорт DOCX</button>
         </div>
       </div>
@@ -76,16 +79,18 @@ export const ReportEditor: React.FC<Props> = ({
 
       <div className="report-editor__content">
         <TitlePageBlock
-          data={data.titlePage}
-          onChange={d => onChange({ ...data, titlePage: d })}
+          global={global}
+          space={space}
+          report={report}
+          onReportChange={onReportChange}
           isActive={activeBlock === 'titlePage'}
           onActivate={() => onActivateBlock('titlePage')}
         />
 
         {has('abstract') && (
           <AbstractBlock
-            data={data.abstract}
-            onChange={d => onChange({ ...data, abstract: d })}
+            data={report.abstract}
+            onChange={d => onReportChange({ ...report, abstract: d })}
             isActive={activeBlock === 'abstract'}
             onActivate={() => onActivateBlock('abstract')}
           />
@@ -93,8 +98,8 @@ export const ReportEditor: React.FC<Props> = ({
 
         {has('workProgress') && (
           <WorkProgressBlock
-            data={data.workProgress}
-            onChange={d => onChange({ ...data, workProgress: d })}
+            data={report.workProgress}
+            onChange={d => onReportChange({ ...report, workProgress: d })}
             isActive={activeBlock === 'workProgress'}
             onActivate={() => onActivateBlock('workProgress')}
           />
@@ -102,8 +107,8 @@ export const ReportEditor: React.FC<Props> = ({
 
         {has('conclusion') && (
           <ConclusionBlock
-            data={data.conclusion}
-            onChange={d => onChange({ ...data, conclusion: d })}
+            data={report.conclusion}
+            onChange={d => onReportChange({ ...report, conclusion: d })}
             isActive={activeBlock === 'conclusion'}
             onActivate={() => onActivateBlock('conclusion')}
           />
@@ -111,8 +116,8 @@ export const ReportEditor: React.FC<Props> = ({
 
         {has('appendix') && (
           <AppendixBlock
-            data={data.appendix}
-            onChange={d => onChange({ ...data, appendix: d })}
+            data={report.appendix}
+            onChange={d => onReportChange({ ...report, appendix: d })}
             isActive={activeBlock === 'appendix'}
             onActivate={() => onActivateBlock('appendix')}
           />
@@ -120,8 +125,8 @@ export const ReportEditor: React.FC<Props> = ({
 
         {has('references') && (
           <ReferencesBlock
-            data={data.references}
-            onChange={d => onChange({ ...data, references: d })}
+            data={report.references}
+            onChange={d => onReportChange({ ...report, references: d })}
             isActive={activeBlock === 'references'}
             onActivate={() => onActivateBlock('references')}
           />

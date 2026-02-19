@@ -712,3 +712,368 @@ body {
 .code-textarea:focus {
   border-color: var(--accent) !important;
 }
+
+/* =============================================
+   HOME SCREEN
+   ============================================= */
+.app--home {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.home-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: var(--bg-white);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  flex-shrink: 0;
+}
+
+.home-header__left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.home-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.home-subtitle {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.home-header__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-student-badge {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px;
+}
+
+.home-student-badge__text {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.home-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.home-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.home-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.home-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-light);
+}
+
+.home-empty__icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.home-empty p {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+/* =============================================
+   SPACES GRID
+   ============================================= */
+.spaces-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.space-card {
+  background: var(--bg-white);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.space-card--expanded {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.08), var(--shadow-lg);
+}
+
+.space-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.space-card__header:hover {
+  background: var(--bg);
+}
+
+.space-card__info {
+  flex: 1;
+}
+
+.space-card__name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.space-card__teacher {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-bottom: 2px;
+}
+
+.space-card__count {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.space-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.space-card__chevron {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.space-card__reports {
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.report-item:hover {
+  border-color: var(--primary);
+  background: rgba(26, 86, 219, 0.02);
+}
+
+.report-item__num {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 70px;
+}
+
+.report-item__topic {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.report-item__topic em {
+  color: var(--text-light);
+  font-style: italic;
+}
+
+/* =============================================
+   MODAL
+   ============================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.modal {
+  background: var(--bg-white);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 420px;
+  max-width: 95vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal--wide { width: 520px; }
+
+.modal__title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  padding: 20px 24px 0;
+}
+
+.modal__desc {
+  font-size: 13px;
+  color: var(--text-light);
+  padding: 4px 24px 0;
+}
+
+.modal__body {
+  padding: 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.settings-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+/* =============================================
+   EDITOR BACK BUTTON
+   ============================================= */
+.btn--back {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* =============================================
+   TITLE PAGE READ-ONLY SECTION
+   ============================================= */
+.title-readonly-section {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title-readonly-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.title-readonly-label {
+  font-size: 12px;
+  color: var(--text-light);
+  min-width: 70px;
+}
+
+.title-readonly-value {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.title-hint {
+  font-size: 12px;
+  color: var(--text-light);
+  background: rgba(26, 86, 219, 0.04);
+  border: 1px solid rgba(26, 86, 219, 0.1);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  line-height: 1.5;
+}
+
+/* =============================================
+   WORK PROGRESS – numbered items
+   ============================================= */
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-num {
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.progress-text-input {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--bg);
+  transition: border-color 0.15s;
+}
+
+.progress-text-input:focus {
+  outline: none;
+  border-color: var(--border-active);
+  background: var(--bg-white);
+}

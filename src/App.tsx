@@ -1,162 +1,191 @@
-import { useState, useCallback, useRef } from 'react';
-import type { BlockType, ReportData } from './types/report';
-import { defaultReportData } from './utils/defaults';
+import { useState, useCallback } from 'react';
+import type { BlockType, GlobalSettings, Space, LabReport } from './types/report';
+import { defaultGlobalSettings } from './utils/defaults';
 import { exportToDocx } from './utils/docxExport';
+import { HomeScreen } from './components/HomeScreen';
+import { GlobalSettingsModal } from './components/GlobalSettingsModal';
 import { ChatPanel } from './components/ChatPanel';
 import { ReportEditor } from './components/ReportEditor';
 import './App.css';
 
-const STORAGE_KEY_API = 'gemini_api_key';
-const STORAGE_KEY_REPORT = 'report_draft';
+// ─── LocalStorage keys ────────────────────────────────────────────────────────
+const KEY_SETTINGS = 'reporter_settings';
+const KEY_SPACES   = 'reporter_spaces';
+const KEY_API      = 'gemini_api_key';
+
+// ─── Persistence helpers ─────────────────────────────────────────────────────
+function loadSettings(): GlobalSettings {
+  try { return JSON.parse(localStorage.getItem(KEY_SETTINGS) ?? '') as GlobalSettings; }
+  catch { return { ...defaultGlobalSettings }; }
+}
+
+function loadSpaces(): Space[] {
+  try { return JSON.parse(localStorage.getItem(KEY_SPACES) ?? '[]') as Space[]; }
+  catch { return []; }
+}
 
 function loadApiKey(): string {
-  return localStorage.getItem(STORAGE_KEY_API) ?? '';
+  return localStorage.getItem(KEY_API) ?? '';
 }
 
-function loadDraft(): ReportData {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_REPORT);
-    if (!raw) return defaultReportData;
-    const parsed = JSON.parse(raw) as ReportData;
-    // Ensure new fields exist for old drafts
-    return {
-      ...defaultReportData,
-      ...parsed,
-      titlePage: { ...defaultReportData.titlePage, ...parsed.titlePage },
-      enabledBlocks: parsed.enabledBlocks ?? defaultReportData.enabledBlocks,
-      appendix: parsed.appendix ?? defaultReportData.appendix,
-    };
-  } catch {
-    return defaultReportData;
-  }
-}
+function saveSettings(s: GlobalSettings) { localStorage.setItem(KEY_SETTINGS, JSON.stringify(s)); }
+function saveSpaces(s: Space[])          { localStorage.setItem(KEY_SPACES,   JSON.stringify(s)); }
+function saveApiKey(k: string)           { localStorage.setItem(KEY_API,      k); }
+
+// ─── App ─────────────────────────────────────────────────────────────────────
+type View = 'home' | 'editor';
 
 function App() {
-  const [apiKey, setApiKey] = useState<string>(loadApiKey);
-  const [reportData, setReportData] = useState<ReportData>(loadDraft);
-  const [activeBlock, setActiveBlock] = useState<BlockType | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>(loadSettings);
+  const [spaces, setSpaces]                 = useState<Space[]>(loadSpaces);
+  const [apiKey, setApiKey]                 = useState<string>(loadApiKey);
 
-  const handleApiKeyChange = useCallback((key: string) => {
+  const [view, setView]                         = useState<View>('home');
+  const [selectedSpaceId, setSelectedSpaceId]   = useState<string | null>(null);
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
+  const [activeBlock, setActiveBlock]           = useState<BlockType | null>(null);
+  const [showSettings, setShowSettings]         = useState(false);
+
+  // ── Derived current space/report ──────────────────────────────────────────
+  const currentSpace  = spaces.find(s => s.id === selectedSpaceId) ?? null;
+  const currentReport = currentSpace?.reports.find(r => r.id === selectedReportId) ?? null;
+
+  // ── Spaces mutators ───────────────────────────────────────────────────────
+  const handleSpacesChange = useCallback((s: Space[]) => {
+    setSpaces(s);
+    saveSpaces(s);
+  }, []);
+
+  // ── Open a report ─────────────────────────────────────────────────────────
+  const handleOpenReport = useCallback((spaceId: string, reportId: string) => {
+    setSelectedSpaceId(spaceId);
+    setSelectedReportId(reportId);
+    setActiveBlock(null);
+    setView('editor');
+  }, []);
+
+  // ── Report change (saves into spaces array) ───────────────────────────────
+  const handleReportChange = useCallback((updated: LabReport) => {
+    const newSpaces = spaces.map(s =>
+      s.id === selectedSpaceId
+        ? { ...s, reports: s.reports.map(r => r.id === updated.id ? updated : r) }
+        : s
+    );
+    handleSpacesChange(newSpaces);
+  }, [spaces, selectedSpaceId, handleSpacesChange]);
+
+  // ── Global settings ───────────────────────────────────────────────────────
+  const handleSaveSettings = useCallback((settings: GlobalSettings, key: string) => {
+    setGlobalSettings(settings);
+    saveSettings(settings);
     setApiKey(key);
-    localStorage.setItem(STORAGE_KEY_API, key);
+    saveApiKey(key);
   }, []);
 
-  const handleReportChange = useCallback((data: ReportData) => {
-    setReportData(data);
-    localStorage.setItem(STORAGE_KEY_REPORT, JSON.stringify(data));
-  }, []);
-
+  // ── Export ────────────────────────────────────────────────────────────────
   const handleExport = useCallback(async () => {
-    const name = `Лаб_${reportData.titlePage.labNumber}_${reportData.titlePage.topic || 'звіт'}`
+    if (!currentSpace || !currentReport) return;
+    const name = `Лаб_${currentReport.labNumber}_${currentReport.topic || 'звіт'}`
       .replace(/[^a-zA-Zа-яА-ЯіїєёІЇЄ0-9_\- ]/g, '').trim();
-    await exportToDocx(reportData, name || 'звіт');
-  }, [reportData]);
+    await exportToDocx(globalSettings, currentSpace, currentReport, name || 'звіт');
+  }, [globalSettings, currentSpace, currentReport]);
 
-  const handleNew = useCallback(() => {
-    if (window.confirm('Створити новий звіт? Незбережені зміни буде втрачено.')) {
-      const fresh = {
-        ...defaultReportData,
-        titlePage: { ...defaultReportData.titlePage, year: new Date().getFullYear().toString() },
-      };
-      handleReportChange(fresh);
-      setActiveBlock(null);
-    }
-  }, [handleReportChange]);
-
+  // ── Save as JSON ──────────────────────────────────────────────────────────
   const handleSave = useCallback(() => {
-    const json = JSON.stringify(reportData, null, 2);
+    if (!currentReport) return;
+    const json = JSON.stringify(currentReport, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Лаб_${reportData.titlePage.labNumber || 'звіт'}.json`;
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `Лаб_${currentReport.labNumber}.json`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [reportData]);
+  }, [currentReport]);
 
-  const handleLoad = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const handleFileLoad = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const parsed = JSON.parse(ev.target?.result as string) as ReportData;
-        const data: ReportData = {
-          ...defaultReportData,
-          ...parsed,
-          titlePage: { ...defaultReportData.titlePage, ...parsed.titlePage },
-          enabledBlocks: parsed.enabledBlocks ?? defaultReportData.enabledBlocks,
-          appendix: parsed.appendix ?? defaultReportData.appendix,
-        };
-        handleReportChange(data);
-      } catch {
-        alert('Помилка читання файлу. Перевірте формат JSON.');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  }, [handleReportChange]);
-
+  // ── Apply AI text to a block ──────────────────────────────────────────────
   const handleApplyToBlock = useCallback((block: BlockType, text: string) => {
-    const updated = { ...reportData };
+    if (!currentReport) return;
+    const r = { ...currentReport };
     switch (block) {
       case 'abstract':
-        updated.abstract = { content: text };
+        r.abstract = { content: text };
         break;
-      case 'workProgress':
-        if (updated.workProgress.steps.length > 0) {
-          const steps = [...updated.workProgress.steps];
-          steps[0] = { ...steps[0], content: text };
-          updated.workProgress = { steps };
-        }
+      case 'workProgress': {
+        const lines = text.split('\n').filter(Boolean);
+        r.workProgress = {
+          items: lines.map((line, i) => ({
+            id: (Date.now() + i).toString(),
+            text: line.replace(/^\d+\.\s*/, ''), // strip leading "1. " if present
+          })),
+        };
         break;
+      }
       case 'conclusion':
-        updated.conclusion = { content: text };
+        r.conclusion = { content: text };
         break;
       case 'appendix':
-        updated.appendix = { ...updated.appendix, code: text };
+        r.appendix = { ...r.appendix, code: text };
         break;
       case 'references':
-        updated.references = { items: text.split('\n').filter(Boolean) };
+        r.references = { items: text.split('\n').filter(Boolean) };
         break;
-      case 'titlePage':
-        updated.titlePage = { ...updated.titlePage, topic: text };
+      default:
         break;
     }
-    handleReportChange(updated);
-  }, [reportData, handleReportChange]);
+    handleReportChange(r);
+  }, [currentReport, handleReportChange]);
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  if (view === 'editor' && currentSpace && currentReport) {
+    return (
+      <div className="app">
+        <ChatPanel
+          apiKey={apiKey}
+          activeBlock={activeBlock}
+          onApplyToBlock={handleApplyToBlock}
+          report={currentReport}
+        />
+        <ReportEditor
+          global={globalSettings}
+          space={currentSpace}
+          report={currentReport}
+          onReportChange={handleReportChange}
+          activeBlock={activeBlock}
+          onActivateBlock={setActiveBlock}
+          onExport={handleExport}
+          onBack={() => setView('home')}
+          onSave={handleSave}
+        />
+        {showSettings && (
+          <GlobalSettingsModal
+            settings={globalSettings}
+            apiKey={apiKey}
+            onSave={handleSaveSettings}
+            onClose={() => setShowSettings(false)}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
-    <div className="app">
-      <ChatPanel
-        apiKey={apiKey}
-        onApiKeyChange={handleApiKeyChange}
-        activeBlock={activeBlock}
-        onApplyToBlock={handleApplyToBlock}
-        reportData={reportData}
+    <div className="app app--home">
+      <HomeScreen
+        spaces={spaces}
+        globalSettings={globalSettings}
+        onOpenReport={handleOpenReport}
+        onSpacesChange={handleSpacesChange}
+        onOpenSettings={() => setShowSettings(true)}
       />
-      <ReportEditor
-        data={reportData}
-        onChange={handleReportChange}
-        activeBlock={activeBlock}
-        onActivateBlock={setActiveBlock}
-        onExport={handleExport}
-        onNew={handleNew}
-        onSave={handleSave}
-        onLoad={handleLoad}
-      />
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".json"
-        style={{ display: 'none' }}
-        onChange={handleFileLoad}
-      />
+      {showSettings && (
+        <GlobalSettingsModal
+          settings={globalSettings}
+          apiKey={apiKey}
+          onSave={handleSaveSettings}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
   );
 }

@@ -1,30 +1,55 @@
 export type OptionalBlockType = 'abstract' | 'workProgress' | 'conclusion' | 'appendix' | 'references';
 export type BlockType = 'titlePage' | OptionalBlockType;
 
-export interface TitlePageData {
+// ──────────────────────────────────────────────
+// Global student settings (shared across all spaces)
+// ──────────────────────────────────────────────
+export interface GlobalSettings {
   faculty: string;
-  labNumber: string;
-  course: string;
-  topic: string;
-  studentGroup: string;
   studentName: string;
-  teacherTitle: string;
-  teacherName: string;
-  year: string;
+  studentGroup: string;
 }
 
+// ──────────────────────────────────────────────
+// Space = one subject/course
+// ──────────────────────────────────────────────
+export interface Space {
+  id: string;
+  courseName: string;
+  teacherTitle: string;
+  teacherName: string;
+  reports: LabReport[];
+}
+
+// ──────────────────────────────────────────────
+// LabReport = one lab work within a space
+// ──────────────────────────────────────────────
+export interface LabReport {
+  id: string;
+  labNumber: string;
+  topic: string;
+  enabledBlocks: OptionalBlockType[];
+  abstract: AbstractData;
+  workProgress: WorkProgressData;
+  conclusion: ConclusionData;
+  appendix: AppendixData;
+  references: ReferencesData;
+}
+
+// ──────────────────────────────────────────────
+// Block data types
+// ──────────────────────────────────────────────
 export interface AbstractData {
   content: string;
 }
 
-export interface WorkProgressStep {
+export interface WorkProgressItem {
   id: string;
-  title: string;
-  content: string;
+  text: string;
 }
 
 export interface WorkProgressData {
-  steps: WorkProgressStep[];
+  items: WorkProgressItem[];
 }
 
 export interface ConclusionData {
@@ -40,16 +65,9 @@ export interface ReferencesData {
   items: string[];
 }
 
-export interface ReportData {
-  titlePage: TitlePageData;
-  enabledBlocks: OptionalBlockType[];
-  abstract: AbstractData;
-  workProgress: WorkProgressData;
-  conclusion: ConclusionData;
-  appendix: AppendixData;
-  references: ReferencesData;
-}
-
+// ──────────────────────────────────────────────
+// Chat
+// ──────────────────────────────────────────────
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';

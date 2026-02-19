@@ -1,46 +1,43 @@
-import type { ReportData, TitlePageData, AbstractData, WorkProgressData, ConclusionData, AppendixData, ReferencesData } from '../types/report';
+import type { GlobalSettings, Space, LabReport, AbstractData, WorkProgressData, ConclusionData, AppendixData, ReferencesData } from '../types/report';
 
-export const defaultTitlePage: TitlePageData = {
+export const defaultGlobalSettings: GlobalSettings = {
   faculty: 'Факультет електроніки та комп\'ютерних технологій',
-  labNumber: '1',
-  course: '',
-  topic: '',
-  studentGroup: '',
   studentName: '',
-  teacherTitle: 'Асист.',
-  teacherName: '',
-  year: new Date().getFullYear().toString(),
+  studentGroup: '',
 };
 
-export const defaultAbstract: AbstractData = {
-  content: '',
-};
+export const defaultAbstract: AbstractData = { content: '' };
 
 export const defaultWorkProgress: WorkProgressData = {
-  steps: [
-    { id: '1', title: '', content: '' },
-  ],
+  items: [{ id: '1', text: '' }],
 };
 
-export const defaultConclusion: ConclusionData = {
-  content: '',
-};
+export const defaultConclusion: ConclusionData = { content: '' };
 
-export const defaultAppendix: AppendixData = {
-  title: 'Код програми',
-  code: '',
-};
+export const defaultAppendix: AppendixData = { title: 'Код програми', code: '' };
 
-export const defaultReferences: ReferencesData = {
-  items: [''],
-};
+export const defaultReferences: ReferencesData = { items: [''] };
 
-export const defaultReportData: ReportData = {
-  titlePage: defaultTitlePage,
-  enabledBlocks: ['abstract', 'workProgress', 'conclusion'],
-  abstract: defaultAbstract,
-  workProgress: defaultWorkProgress,
-  conclusion: defaultConclusion,
-  appendix: defaultAppendix,
-  references: defaultReferences,
-};
+export function createDefaultReport(labNumber = '1'): LabReport {
+  return {
+    id: Date.now().toString(),
+    labNumber,
+    topic: '',
+    enabledBlocks: ['abstract', 'workProgress', 'conclusion'],
+    abstract: { ...defaultAbstract },
+    workProgress: { items: [{ id: Date.now().toString(), text: '' }] },
+    conclusion: { ...defaultConclusion },
+    appendix: { ...defaultAppendix },
+    references: { items: [''] },
+  };
+}
+
+export function createDefaultSpace(courseName: string, teacherTitle: string, teacherName: string): Space {
+  return {
+    id: Date.now().toString(),
+    courseName,
+    teacherTitle,
+    teacherName,
+    reports: [],
+  };
+}
