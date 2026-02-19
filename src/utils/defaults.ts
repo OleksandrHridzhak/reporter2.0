@@ -1,34 +1,34 @@
-import type { ReportData, TitlePageData, AbstractData, WorkProgressData, ConclusionData, ReferencesData } from '../types/report';
+import type { ReportData, TitlePageData, AbstractData, WorkProgressData, ConclusionData, AppendixData, ReferencesData } from '../types/report';
 
 export const defaultTitlePage: TitlePageData = {
-  university: 'ЛЬВІВСЬКИЙ НАЦІОНАЛЬНИЙ УНІВЕРСИТЕТ ІМЕНІ ІВАНА ФРАНКА',
-  faculty: 'Факультет прикладної математики та інформатики',
-  department: 'Кафедра програмування',
-  workType: 'ЗВІТ',
-  subject: 'з дисципліни «»',
-  labNumber: '№ 1',
-  topic: 'Тема: ',
+  faculty: 'Факультет електроніки та комп\'ютерних технологій',
+  labNumber: '1',
+  course: '',
+  topic: '',
+  studentGroup: '',
   studentName: '',
-  group: '',
+  teacherTitle: 'Асист.',
   teacherName: '',
-  city: 'Львів',
   year: new Date().getFullYear().toString(),
 };
 
 export const defaultAbstract: AbstractData = {
-  purpose: '',
-  tasks: [''],
-  tools: '',
+  content: '',
 };
 
 export const defaultWorkProgress: WorkProgressData = {
   steps: [
-    { id: '1', title: 'Крок 1', content: '' },
+    { id: '1', title: '', content: '' },
   ],
 };
 
 export const defaultConclusion: ConclusionData = {
   content: '',
+};
+
+export const defaultAppendix: AppendixData = {
+  title: 'Код програми',
+  code: '',
 };
 
 export const defaultReferences: ReferencesData = {
@@ -37,8 +37,10 @@ export const defaultReferences: ReferencesData = {
 
 export const defaultReportData: ReportData = {
   titlePage: defaultTitlePage,
+  enabledBlocks: ['abstract', 'workProgress', 'conclusion'],
   abstract: defaultAbstract,
   workProgress: defaultWorkProgress,
   conclusion: defaultConclusion,
+  appendix: defaultAppendix,
   references: defaultReferences,
 };

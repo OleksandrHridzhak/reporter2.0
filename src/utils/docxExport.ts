@@ -12,17 +12,15 @@ import type { ReportData } from '../types/report';
 
 const FONT = 'Times New Roman';
 const FONT_SIZE = 28; // 14pt in half-points
-const HEADING_SIZE = 28; // 14pt
-const INDENT = convertInchesToTwip(1.25); // DSTU: 1.25cm paragraph indent
 const LINE_SPACING = { line: 360, lineRule: 'auto' as const }; // 1.5 line spacing
+const INDENT = convertInchesToTwip(0.49); // 1.25cm first-line indent
 
-function makeHeading(text: string, level: 1 | 2 | 3 = 1): Paragraph {
+function makeHeading(text: string, level: 1 | 2 = 1): Paragraph {
   return new Paragraph({
-    text,
-    heading: level === 1 ? HeadingLevel.HEADING_1 : level === 2 ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3,
-    alignment: AlignmentType.CENTER,
+    children: [new TextRun({ text, font: FONT, size: FONT_SIZE, bold: true })],
+    heading: level === 1 ? HeadingLevel.HEADING_1 : HeadingLevel.HEADING_2,
+    alignment: level === 1 ? AlignmentType.CENTER : AlignmentType.LEFT,
     spacing: { before: 240, after: 120, ...LINE_SPACING },
-    style: `Heading${level}`,
   });
 }
 
@@ -43,11 +41,19 @@ function makeCentered(text: string, bold = false, size?: number): Paragraph {
   });
 }
 
-function makeRight(text: string): Paragraph {
+function makeRight(text: string, bold = false): Paragraph {
   return new Paragraph({
-    children: [new TextRun({ text, font: FONT, size: FONT_SIZE })],
+    children: [new TextRun({ text, font: FONT, size: FONT_SIZE, bold })],
     alignment: AlignmentType.RIGHT,
     spacing: { before: 0, after: 0, ...LINE_SPACING },
+  });
+}
+
+function makeMonospace(text: string): Paragraph {
+  return new Paragraph({
+    children: [new TextRun({ text, font: 'Courier New', size: 24 })],
+    alignment: AlignmentType.LEFT,
+    spacing: { before: 0, after: 0, line: 240, lineRule: 'auto' },
   });
 }
 
@@ -59,62 +65,77 @@ function makeEmpty(): Paragraph {
 }
 
 export async function exportToDocx(report: ReportData, filename = 'звіт'): Promise<void> {
-  const { titlePage, abstract, workProgress, conclusion, references } = report;
+  const { titlePage, enabledBlocks, abstract, workProgress, conclusion, appendix, references } = report;
 
-  const titleSection = [
-    makeEmpty(),
-    makeEmpty(),
-    makeCentered(titlePage.university, false, 24),
-    makeEmpty(),
+  // Title page matching the exact LNU format
+  const titleSection: Paragraph[] = [
+    makeCentered('Міністерство освіти і науки України'),
+    makeCentered('Львівський національний університет імені Івана Франка'),
     makeCentered(titlePage.faculty),
-    makeCentered(titlePage.department),
     makeEmpty(),
     makeEmpty(),
-    makeEmpty(),
-    makeCentered(titlePage.workType, true, 32),
-    makeCentered(titlePage.subject),
-    makeCentered(`Лабораторна робота ${titlePage.labNumber}`),
-    makeCentered(titlePage.topic),
+    makeCentered(`ЛАБОРАТОРНА РОБОТА № ${titlePage.labNumber}`, true),
+    ...(titlePage.course ? [makeCentered(`з курсу "${titlePage.course}"`)] : []),
+    ...(titlePage.topic ? [makeCentered(`"${titlePage.topic}"`)] : []),
     makeEmpty(),
     makeEmpty(),
+    makeRight('Виконав:', true),
+    makeRight(`Ст. ${titlePage.studentGroup}`),
+    makeRight(titlePage.studentName),
+    makeRight('Перевірив:', true),
+    makeRight(`${titlePage.teacherTitle} ${titlePage.teacherName}`),
     makeEmpty(),
-    makeRight(`Виконав: ${titlePage.studentName}`),
-    makeRight(`Група: ${titlePage.group}`),
-    makeRight(`Перевірив: ${titlePage.teacherName}`),
     makeEmpty(),
-    makeEmpty(),
-    makeEmpty(),
-    makeCentered(`${titlePage.city} – ${titlePage.year}`),
+    makeCentered(`Львів ${titlePage.year}`),
   ];
 
-  const abstractSection = [
-    makeHeading('АНОТАЦІЯ'),
-    makeBody(`Мета роботи: ${abstract.purpose}`),
-    makeBody('Завдання:'),
-    ...abstract.tasks.map((t, i) => makeBody(`${i + 1}. ${t}`)),
-    makeBody(`Засоби виконання: ${abstract.tools}`),
-    makeEmpty(),
-  ];
+  const children: Paragraph[] = [...titleSection];
 
-  const progressSection = [
-    makeHeading('ХІД РОБОТИ'),
-    ...workProgress.steps.flatMap((step, i) => [
-      makeHeading(`${i + 1}. ${step.title}`, 2),
-      ...step.content.split('\n').filter(Boolean).map(line => makeBody(line)),
-      makeEmpty(),
-    ]),
-  ];
+  if (enabledBlocks.includes('abstract') && abstract.content.trim()) {
+    children.push(makeEmpty());
+    children.push(makeBody(`Мета роботи: ${abstract.content}`));
+    children.push(makeEmpty());
+  }
 
-  const conclusionSection = [
-    makeHeading('ВИСНОВКИ'),
-    ...conclusion.content.split('\n').filter(Boolean).map(line => makeBody(line)),
-    makeEmpty(),
-  ];
+  if (enabledBlocks.includes('workProgress') && workProgress.steps.length > 0) {
+    children.push(makeHeading('Хід роботи'));
+    workProgress.steps.forEach((step, i) => {
+      const stepLabel = step.title.trim() ? `${i + 1}. ${step.title}` : `${i + 1}.`;
+      if (step.title.trim()) {
+        children.push(makeBody(stepLabel, false));
+      }
+      step.content.split('\n').filter(Boolean).forEach(line => {
+        children.push(makeBody(line));
+      });
+    });
+    children.push(makeEmpty());
+  }
 
-  const referencesSection = [
-    makeHeading('СПИСОК ВИКОРИСТАНИХ ДЖЕРЕЛ'),
-    ...references.items.filter(Boolean).map((ref, i) => makeBody(`${i + 1}. ${ref}`)),
-  ];
+  if (enabledBlocks.includes('conclusion') && conclusion.content.trim()) {
+    children.push(makeHeading('Висновки'));
+    conclusion.content.split('\n').filter(Boolean).forEach(line => {
+      children.push(makeBody(line));
+    });
+    children.push(makeEmpty());
+  }
+
+  if (enabledBlocks.includes('appendix')) {
+    children.push(makeHeading('Додаток'));
+    if (appendix.title.trim()) {
+      children.push(makeBody(appendix.title + ':'));
+    }
+    appendix.code.split('\n').forEach(line => {
+      children.push(makeMonospace(line));
+    });
+    children.push(makeEmpty());
+  }
+
+  if (enabledBlocks.includes('references') && references.items.filter(Boolean).length > 0) {
+    children.push(makeHeading('Список використаних джерел'));
+    references.items.filter(Boolean).forEach((ref, i) => {
+      children.push(makeBody(`${i + 1}. ${ref}`));
+    });
+  }
 
   const doc = new Document({
     styles: {
@@ -124,24 +145,6 @@ export async function exportToDocx(report: ReportData, filename = 'звіт'): P
           paragraph: { spacing: LINE_SPACING },
         },
       },
-      paragraphStyles: [
-        {
-          id: 'Heading1',
-          name: 'Heading 1',
-          basedOn: 'Normal',
-          next: 'Normal',
-          run: { font: FONT, size: HEADING_SIZE, bold: true },
-          paragraph: { alignment: AlignmentType.CENTER, spacing: { before: 240, after: 120 } },
-        },
-        {
-          id: 'Heading2',
-          name: 'Heading 2',
-          basedOn: 'Normal',
-          next: 'Normal',
-          run: { font: FONT, size: HEADING_SIZE, bold: true },
-          paragraph: { alignment: AlignmentType.LEFT, spacing: { before: 240, after: 120 } },
-        },
-      ],
     },
     sections: [
       {
@@ -155,13 +158,7 @@ export async function exportToDocx(report: ReportData, filename = 'звіт'): P
             },
           },
         },
-        children: [
-          ...titleSection,
-          ...abstractSection,
-          ...progressSection,
-          ...conclusionSection,
-          ...referencesSection,
-        ],
+        children,
       },
     ],
   });

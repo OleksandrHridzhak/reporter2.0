@@ -16,7 +16,16 @@ function loadApiKey(): string {
 function loadDraft(): ReportData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_REPORT);
-    return raw ? (JSON.parse(raw) as ReportData) : defaultReportData;
+    if (!raw) return defaultReportData;
+    const parsed = JSON.parse(raw) as ReportData;
+    // Ensure new fields exist for old drafts
+    return {
+      ...defaultReportData,
+      ...parsed,
+      titlePage: { ...defaultReportData.titlePage, ...parsed.titlePage },
+      enabledBlocks: parsed.enabledBlocks ?? defaultReportData.enabledBlocks,
+      appendix: parsed.appendix ?? defaultReportData.appendix,
+    };
   } catch {
     return defaultReportData;
   }
@@ -39,13 +48,17 @@ function App() {
   }, []);
 
   const handleExport = useCallback(async () => {
-    const name = `${reportData.titlePage.labNumber}_${reportData.titlePage.topic || 'звіт'}`.replace(/[^a-zA-Zа-яА-ЯіїєёІЇЄ0-9_\- ]/g, '').trim();
+    const name = `Лаб_${reportData.titlePage.labNumber}_${reportData.titlePage.topic || 'звіт'}`
+      .replace(/[^a-zA-Zа-яА-ЯіїєёІЇЄ0-9_\- ]/g, '').trim();
     await exportToDocx(reportData, name || 'звіт');
   }, [reportData]);
 
   const handleNew = useCallback(() => {
     if (window.confirm('Створити новий звіт? Незбережені зміни буде втрачено.')) {
-      const fresh = { ...defaultReportData, titlePage: { ...defaultReportData.titlePage, year: new Date().getFullYear().toString() } };
+      const fresh = {
+        ...defaultReportData,
+        titlePage: { ...defaultReportData.titlePage, year: new Date().getFullYear().toString() },
+      };
       handleReportChange(fresh);
       setActiveBlock(null);
     }
@@ -57,7 +70,7 @@ function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${reportData.titlePage.labNumber || 'звіт'}.json`;
+    a.download = `Лаб_${reportData.titlePage.labNumber || 'звіт'}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }, [reportData]);
@@ -72,7 +85,14 @@ function App() {
     const reader = new FileReader();
     reader.onload = ev => {
       try {
-        const data = JSON.parse(ev.target?.result as string) as ReportData;
+        const parsed = JSON.parse(ev.target?.result as string) as ReportData;
+        const data: ReportData = {
+          ...defaultReportData,
+          ...parsed,
+          titlePage: { ...defaultReportData.titlePage, ...parsed.titlePage },
+          enabledBlocks: parsed.enabledBlocks ?? defaultReportData.enabledBlocks,
+          appendix: parsed.appendix ?? defaultReportData.appendix,
+        };
         handleReportChange(data);
       } catch {
         alert('Помилка читання файлу. Перевірте формат JSON.');
@@ -86,7 +106,7 @@ function App() {
     const updated = { ...reportData };
     switch (block) {
       case 'abstract':
-        updated.abstract = { ...updated.abstract, purpose: text };
+        updated.abstract = { content: text };
         break;
       case 'workProgress':
         if (updated.workProgress.steps.length > 0) {
@@ -97,6 +117,9 @@ function App() {
         break;
       case 'conclusion':
         updated.conclusion = { content: text };
+        break;
+      case 'appendix':
+        updated.appendix = { ...updated.appendix, code: text };
         break;
       case 'references':
         updated.references = { items: text.split('\n').filter(Boolean) };
